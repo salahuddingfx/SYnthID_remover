@@ -1,22 +1,21 @@
 FROM python:3.11-slim
 
-WORKDIR /app
+# Create non-root user with UID 1000 (standard requirement for Hugging Face Spaces)
+RUN useradd -m -u 1000 user
+USER user
+ENV HOME=/home/user \
+    PATH=/home/user/.local/bin:$PATH
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+WORKDIR $HOME/app
 
-# Install python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy files with user ownership
+COPY --chown=user . $HOME/app
 
-# Copy project files
-COPY . .
+# Install dependencies into user directory
+RUN pip install --no-cache-dir --user -r requirements.txt
 
-# Expose port (default 7860 for Hugging Face / 8080 for Render/Koyeb)
+# Hugging Face Spaces exposes port 7860 by default
 ENV PORT=7860
 EXPOSE 7860
 
 CMD ["python3", "app.py"]
-
