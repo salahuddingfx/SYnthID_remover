@@ -56,6 +56,30 @@ def build_parser():
         help="Detect and inpaint visible corner watermarks (e.g. Gemini sparkle badge).",
     )
     parser.add_argument(
+        "--upscale",
+        type=int,
+        choices=[2, 4],
+        help="Upscale image resolution by 2x or 4x using high-order perceptual super-resolution.",
+    )
+    parser.add_argument(
+        "--preset",
+        choices=["facebook_post", "facebook_square", "instagram_post", "instagram_portrait", "instagram_story", "twitter_post", "youtube_thumb"],
+        help="Format image to standard social media dimensions (e.g. 'facebook_post' 1200x630, 'instagram_story' 1080x1920).",
+    )
+    parser.add_argument(
+        "--resize-mode",
+        choices=["pad_blur", "crop", "fit"],
+        default="pad_blur",
+        help="Fitting style for social media presets: 'pad_blur' (smart blurred background), 'crop' (center-crop), or 'fit'.",
+    )
+    parser.add_argument(
+        "--split-grid",
+        nargs=2,
+        type=int,
+        metavar=("ROWS", "COLS"),
+        help="Pixel divider: splits the purified image into a grid of ROWS x COLS tiles (e.g. 1 3 for Instagram panorama carousel).",
+    )
+    parser.add_argument(
         "-f", "--format",
         choices=["png", "jpg", "jpeg", "webp"],
         help="Force output image format.",
@@ -164,6 +188,9 @@ def main():
         strength=args.strength,
         desync_grid=not args.no_desync,
         remove_badge=args.remove_badge,
+        upscale=args.upscale or 1,
+        social_preset=args.preset,
+        resize_mode=args.resize_mode,
     )
 
     if os.path.isfile(input_path):
@@ -175,6 +202,19 @@ def main():
             out_path = str(p.parent / f"cleaned_{p.stem}{ext}")
 
         process_single_file(input_path, out_path, purifier, args.format, args.quiet)
+
+        if args.split_grid:
+            from PIL import Image
+            from synthid_remover.filters.resizer import split_image_grid
+            rows, cols = args.split_grid
+            with Image.open(out_path) as out_img:
+                tiles = split_image_grid(out_img, rows=rows, cols=cols)
+            p = Path(out_path)
+            for idx, tile in enumerate(tiles):
+                tile_path = str(p.parent / f"{p.stem}_tile_{idx+1}{p.suffix}")
+                tile.save(tile_path)
+                if not args.quiet:
+                    print(f"   ✓ Grid tile {idx+1}/{len(tiles)} saved to: {tile_path}")
 
         if args.diff_map:
             from synthid_remover.core.analyzer import generate_difference_heatmap

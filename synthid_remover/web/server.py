@@ -206,6 +206,29 @@ HTML_PAGE = """<!DOCTYPE html>
         </div>
       </div>
 
+      <div class="controls" style="margin-top: 1rem;">
+        <div>
+          <label for="upscaleSelect">Resolution Upscaler</label>
+          <select id="upscaleSelect">
+            <option value="1" selected>Original Size (1x)</option>
+            <option value="2">2x Super-Resolution (Crisp)</option>
+            <option value="4">4x Ultra-Resolution (High Detail)</option>
+          </select>
+        </div>
+        <div>
+          <label for="socialSelect">Social Media Sizer</label>
+          <select id="socialSelect">
+            <option value="" selected>Original Aspect Ratio</option>
+            <option value="facebook_post">Facebook Feed Post (1200x630)</option>
+            <option value="facebook_square">Facebook / IG Square (1080x1080)</option>
+            <option value="instagram_portrait">Instagram Portrait 4:5 (1080x1350)</option>
+            <option value="instagram_story">Instagram Story / Reels / TikTok (1080x1920)</option>
+            <option value="twitter_post">Twitter / X Post (1200x675)</option>
+            <option value="youtube_thumb">YouTube Thumbnail (1280x720)</option>
+          </select>
+        </div>
+      </div>
+
       <div style="margin-top: 1rem; display: flex; align-items: center; gap: 0.5rem;">
         <input type="checkbox" id="badgeCheck" style="width: 18px; height: 18px; cursor: pointer;">
         <label for="badgeCheck" style="cursor: pointer; text-transform: none; font-size: 0.95rem; color: var(--text);">Remove Visible Badge (Inpaint Gemini/Veo corner sparkle)</label>
@@ -340,6 +363,8 @@ HTML_PAGE = """<!DOCTYPE html>
       formData.append('mode', document.getElementById('modeSelect').value);
       formData.append('strength', document.getElementById('strengthRange').value);
       formData.append('remove_badge', document.getElementById('badgeCheck').checked ? 'true' : 'false');
+      formData.append('upscale', document.getElementById('upscaleSelect').value);
+      formData.append('social_preset', document.getElementById('socialSelect').value);
 
       try {
         const res = await fetch('/api/purify', { method: 'POST', body: formData });
@@ -408,6 +433,8 @@ class SynthIDWebHandler(BaseHTTPRequestHandler):
             mode = "balanced"
             strength = 0.35
             remove_badge = False
+            upscale = 1
+            social_preset = None
 
             for part in parts:
                 if b'name="image"' in part:
@@ -430,6 +457,19 @@ class SynthIDWebHandler(BaseHTTPRequestHandler):
                     if header_end != -1:
                         val = part[header_end + 4 :].rstrip(b"\r\n").decode("utf-8", errors="ignore")
                         remove_badge = (val == "true")
+                elif b'name="upscale"' in part:
+                    header_end = part.find(b"\r\n\r\n")
+                    if header_end != -1:
+                        try:
+                            upscale = int(part[header_end + 4 :].rstrip(b"\r\n"))
+                        except ValueError:
+                            pass
+                elif b'name="social_preset"' in part:
+                    header_end = part.find(b"\r\n\r\n")
+                    if header_end != -1:
+                        val = part[header_end + 4 :].rstrip(b"\r\n").decode("utf-8", errors="ignore").strip()
+                        if val:
+                            social_preset = val
 
             if not file_bytes:
                 self.send_json({"success": False, "error": "No image uploaded"}, 400)
@@ -444,7 +484,13 @@ class SynthIDWebHandler(BaseHTTPRequestHandler):
                 with open(input_file, "wb") as f:
                     f.write(file_bytes)
 
-                purifier = SynthIDPurifier(mode=mode, strength=strength, remove_badge=remove_badge)
+                purifier = SynthIDPurifier(
+                    mode=mode,
+                    strength=strength,
+                    remove_badge=remove_badge,
+                    upscale=upscale,
+                    social_preset=social_preset,
+                )
                 res = purifier.process_image(input_file, output_file, output_format="PNG")
 
                 with open(output_file, "rb") as f:

@@ -12,6 +12,8 @@ from synthid_remover.metadata.cleaner import clean_image_metadata
 from synthid_remover.filters.dct_filter import purify_dct_block, purify_dct_global
 from synthid_remover.filters.spatial_purifier import desynchronize_grid, edge_preserving_denoise, chroma_decorrelation
 from synthid_remover.filters.inpainter import remove_visible_badge
+from synthid_remover.filters.upscaler import upscale_image
+from synthid_remover.filters.resizer import resize_to_social, SOCIAL_PRESETS
 from synthid_remover.core.metrics import evaluate_fidelity
 
 
@@ -20,18 +22,33 @@ class SynthIDPurifier:
     Main engine for removing SynthID and AI steganographic watermarks from images.
     """
 
-    def __init__(self, mode: str = "balanced", strength: float = 0.35, desync_grid: bool = True, remove_badge: bool = False):
+    def __init__(
+        self,
+        mode: str = "balanced",
+        strength: float = 0.35,
+        desync_grid: bool = True,
+        remove_badge: bool = False,
+        upscale: int = 1,
+        social_preset: Optional[str] = None,
+        resize_mode: str = "pad_blur",
+    ):
         """
         Args:
             mode: 'fast', 'balanced', 'deep', or 'metadata_only'
             strength: Perturbation strength for frequency/spatial filters (0.1 to 1.0)
             desync_grid: Whether to apply subpixel Lanczos desynchronization
             remove_badge: Whether to detect and inpaint visible corner badges (e.g. Gemini sparkle)
+            upscale: 1 (none), 2 (2x), or 4 (4x) super-resolution
+            social_preset: Preset name from SOCIAL_PRESETS (e.g. 'facebook_post', 'instagram_story')
+            resize_mode: 'pad_blur', 'crop', or 'fit'
         """
         self.mode = mode.lower()
         self.strength = float(strength)
         self.desync_grid = desync_grid
         self.remove_badge = remove_badge
+        self.upscale = upscale
+        self.social_preset = social_preset
+        self.resize_mode = resize_mode
 
     def process_image(self, input_path: str, output_path: str, output_format: Optional[str] = None) -> Dict[str, Any]:
         """
@@ -105,6 +122,20 @@ class SynthIDPurifier:
         else:
             final_arr = rgb_arr
             final_pil = Image.fromarray(final_arr, mode="RGB")
+
+        # Step 5: Optional High-Order Upscaling (Lanczos + Unsharp Masking)
+        if self.upscale in (2, 4):
+            final_pil = upscale_image(final_pil, scale=self.upscale)
+
+        # Step 6: Optional Social Media Sizer / Formatter (Facebook, Instagram, etc.)
+        if self.social_preset and self.social_preset in SOCIAL_PRESETS:
+            cfg = SOCIAL_PRESETS[self.social_preset]
+            final_pil = resize_to_social(
+                final_pil,
+                target_width=cfg["width"],
+                target_height=cfg["height"],
+                mode=self.resize_mode,
+            )
 
         # Save output without any metadata chunks
         os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)

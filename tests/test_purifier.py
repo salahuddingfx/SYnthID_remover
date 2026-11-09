@@ -11,6 +11,8 @@ from PIL import Image
 from synthid_remover.core.pipeline import SynthIDPurifier
 from synthid_remover.metadata.cleaner import clean_video_c2pa, C2PA_BOX_UUID
 from synthid_remover.filters.inpainter import remove_visible_badge
+from synthid_remover.filters.upscaler import upscale_image
+from synthid_remover.filters.resizer import resize_to_social, split_image_grid, SOCIAL_PRESETS
 
 
 def create_synthetic_watermarked_image(path: str, size=(256, 256)):
@@ -102,9 +104,32 @@ def test_badge_inpainting():
     print("✓ Badge inpainting passed!")
 
 
+def test_upscaler_and_social_sizer():
+    img = Image.new("RGB", (300, 200), (80, 120, 160))
+
+    # Test 2x upscaler
+    up2 = upscale_image(img, scale=2)
+    assert up2.size == (600, 400), f"Upscale size wrong: {up2.size}"
+
+    # Test Facebook post sizer (1200x630) with pad_blur
+    fb = resize_to_social(img, target_width=1200, target_height=630, mode="pad_blur")
+    assert fb.size == (1200, 630), f"FB post size wrong: {fb.size}"
+
+    # Test Instagram Story sizer (1080x1920)
+    story = resize_to_social(img, target_width=1080, target_height=1920, mode="pad_blur")
+    assert story.size == (1080, 1920), f"IG Story size wrong: {story.size}"
+
+    # Test pixel divider (1x3 carousel)
+    tiles = split_image_grid(img, rows=1, cols=3)
+    assert len(tiles) == 3, f"Tile count wrong: {len(tiles)}"
+    assert tiles[0].size == (100, 200), f"Tile size wrong: {tiles[0].size}"
+    print("✓ Upscaler and Social Media Sizer passed!")
+
+
 if __name__ == "__main__":
     test_purification_modes()
     test_video_c2pa_atom_scrubber()
     test_badge_inpainting()
+    test_upscaler_and_social_sizer()
     print("\n🎉 All tests passed successfully!")
 
