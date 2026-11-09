@@ -3,211 +3,611 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SynthID & AI Watermark Remover</title>
-  <meta name="description" content="100% Client-Side SynthID & AI Watermark Remover, Upscaler, and Social Media Sizer.">
+  <title>SynthID Remover & AI Studio</title>
+  <meta name="description" content="Next-Gen AI Watermark Purifier, Super-Resolution Upscaler & Social Media Carousel Studio. Crafted by Salah Uddin Kader.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0f172a;
-      --card-bg: #1e293b;
-      --border: #334155;
-      --brand: #38bdf8;
-      --brand-hover: #0284c7;
-      --text: #f8fafc;
-      --muted: #94a3b8;
-      --success: #4ade80;
+      --bg-base: #060911;
+      --bg-surface: rgba(15, 23, 42, 0.65);
+      --bg-surface-elevated: rgba(30, 41, 59, 0.7);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(56, 189, 248, 0.5);
+      --brand-primary: #38bdf8;
+      --brand-gradient: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
+      --brand-glow: rgba(56, 189, 248, 0.25);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --success: #34d399;
+      --success-glow: rgba(52, 211, 153, 0.2);
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-base);
+      color: var(--text-main);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 2rem 1rem;
+      padding: 2.5rem 1rem;
+      position: relative;
+      overflow-x: hidden;
     }
-    .container { max-width: 900px; width: 100%; }
-    header { text-align: center; margin-bottom: 2rem; }
-    h1 { font-size: 2.2rem; font-weight: 800; margin-bottom: 0.5rem; }
-    h1 span { color: var(--brand); }
-    p.subtitle { color: var(--muted); font-size: 1.05rem; }
+
+    /* Ambient dynamic glow background */
+    body::before {
+      content: "";
+      position: fixed;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.12) 0%, rgba(129, 140, 248, 0.08) 40%, transparent 70%);
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 920px;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header & Badges */
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .pill-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      color: var(--brand-primary);
+      padding: 0.35rem 0.9rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      margin-bottom: 1rem;
+      box-shadow: 0 0 20px var(--brand-glow);
+    }
+    .pill-badge span.pulse-dot {
+      width: 7px;
+      height: 7px;
+      background: var(--brand-primary);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--brand-primary);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    h1 {
+      font-size: 2.75rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      margin-bottom: 0.75rem;
+    }
+    h1 .gradient-text {
+      background: var(--brand-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      max-width: 620px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+
+    /* Cards */
     .card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 1.75rem;
-      margin-bottom: 1.5rem;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+      background: var(--bg-surface);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 1.75rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      transition: border-color 0.3s ease;
     }
+    .card:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    /* Drop Zone */
     .drop-zone {
-      border: 2px dashed var(--border);
-      border-radius: 12px;
-      padding: 2.5rem 1.5rem;
+      border: 2px dashed rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      padding: 3rem 1.5rem;
       text-align: center;
       cursor: pointer;
-      transition: all 0.2s ease;
-      background: rgba(15, 23, 42, 0.5);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      background: rgba(10, 15, 30, 0.4);
+      position: relative;
     }
     .drop-zone:hover, .drop-zone.dragover {
-      border-color: var(--brand);
-      background: rgba(56, 189, 248, 0.08);
+      border-color: var(--brand-primary);
+      background: rgba(56, 189, 248, 0.05);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px -10px var(--brand-glow);
     }
-    .drop-zone p { color: var(--muted); margin-top: 0.5rem; }
-    .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.25rem; }
-    label { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+    .drop-zone svg {
+      color: var(--brand-primary);
+      margin: 0 auto 1rem;
+      transition: transform 0.2s;
+    }
+    .drop-zone:hover svg {
+      transform: scale(1.1);
+    }
+    .drop-zone h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+    }
+    .drop-zone p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    /* Controls Grid */
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin-top: 1.5rem;
+    }
+    @media (max-width: 640px) {
+      .controls { grid-template-columns: 1fr; }
+      h1 { font-size: 2.1rem; }
+    }
+
+    label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.4rem;
+    }
+    label span.val-highlight {
+      color: var(--brand-primary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
     select, input[type=range] {
-      width: 100%; margin-top: 0.35rem; padding: 0.65rem; border-radius: 8px;
-      background: #0f172a; border: 1px solid var(--border); color: var(--text); font-size: 0.95rem;
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      background: #090e1a;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      font-size: 0.92rem;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.2s;
     }
-    .btn {
-      display: inline-flex; align-items: center; justify-content: center; width: 100%;
-      background: var(--brand); color: #0f172a; font-weight: 700; font-size: 1.05rem;
-      padding: 0.85rem; border-radius: 10px; border: none; cursor: pointer;
-      margin-top: 1.5rem; transition: background 0.2s;
+    select:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--brand-glow);
     }
-    .btn:hover { background: var(--brand-hover); }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .checkbox-tile {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: #090e1a;
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      cursor: pointer;
+      user-select: none;
+      transition: border-color 0.2s;
+    }
+    .checkbox-tile:hover {
+      border-color: var(--border-focus);
+    }
+    .checkbox-tile input[type=checkbox] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--brand-primary);
+      cursor: pointer;
+    }
+    .checkbox-tile span {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-main);
+    }
+
+    /* Process Button */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      width: 100%;
+      background: var(--brand-gradient);
+      color: #060911;
+      font-weight: 800;
+      font-size: 1.05rem;
+      padding: 1rem;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      margin-top: 1.75rem;
+      box-shadow: 0 10px 25px -5px var(--brand-glow);
+      transition: all 0.25s ease;
+    }
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 35px -5px rgba(56, 189, 248, 0.4);
+    }
+    .btn-primary:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Metrics Bar */
     .metrics-bar {
-      display: flex; justify-content: space-around; margin-top: 1.5rem; padding: 1rem;
-      background: #0f172a; border-radius: 10px; border: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+      margin: 1.5rem 0;
+      padding: 1.25rem;
+      background: #080c16;
+      border-radius: 14px;
+      border: 1px solid var(--border-subtle);
+    }
+    @media (max-width: 600px) {
+      .metrics-bar { grid-template-columns: 1fr 1fr; }
     }
     .metric { text-align: center; }
-    .metric .val { font-size: 1.3rem; font-weight: 700; color: var(--brand); }
-    .metric .lbl { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; }
-    .preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.5rem; }
-    .preview-box { text-align: center; }
-    .preview-box img { max-width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--border); margin-top: 0.5rem; }
-    .status-badge { display: inline-block; padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; }
-    .status-badge.clean { background: rgba(74, 222, 128, 0.15); color: var(--success); }
-    .download-btn {
-      display: inline-block; background: var(--success); color: #0f172a; font-weight: 700;
-      padding: 0.7rem 1.5rem; border-radius: 8px; text-decoration: none; margin-top: 1rem; cursor: pointer;
+    .metric .val {
+      font-size: 1.4rem;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--brand-primary);
     }
-    .view-toggle { display: flex; justify-content: center; gap: 0.5rem; margin-top: 1.5rem; }
+    .metric .lbl {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 0.2rem;
+    }
+
+    /* View Switcher */
+    .view-toggle {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      background: #090e1a;
+      padding: 0.35rem;
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+      width: fit-content;
+      margin: 1.5rem auto 1rem auto;
+    }
     .view-btn {
-      background: #0f172a; border: 1px solid var(--border); color: var(--muted);
-      padding: 0.4rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.45rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: inherit;
+      transition: all 0.2s;
     }
-    .view-btn.active { background: var(--brand); color: #0f172a; border-color: var(--brand); }
+    .view-btn.active {
+      background: var(--bg-surface-elevated);
+      color: var(--brand-primary);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    /* Preview Grids & Slider */
+    .preview-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin-top: 1.25rem;
+    }
+    @media (max-width: 640px) {
+      .preview-grid { grid-template-columns: 1fr; }
+    }
+    .preview-box {
+      text-align: center;
+      background: #080c16;
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+    }
+    .preview-box h4 {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.6rem;
+    }
+    .preview-box img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    /* Split Slider */
     .slider-container {
-      position: relative; width: 100%; max-width: 700px; margin: 1.5rem auto 0 auto;
-      overflow: hidden; border-radius: 10px; border: 1px solid var(--border); user-select: none;
+      position: relative;
+      width: 100%;
+      max-width: 720px;
+      margin: 1.5rem auto 0 auto;
+      overflow: hidden;
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+      user-select: none;
+      background: #000;
     }
-    .slider-img { display: block; width: 100%; height: auto; pointer-events: none; }
-    .slider-overlay { position: absolute; top: 0; left: 0; width: 50%; height: 100%; overflow: hidden; }
+    .slider-img {
+      display: block;
+      width: 100%;
+      height: auto;
+      pointer-events: none;
+    }
+    .slider-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 50%;
+      height: 100%;
+      overflow: hidden;
+    }
     .slider-handle {
-      position: absolute; top: 0; bottom: 0; left: 50%; width: 3px; background: var(--brand); cursor: ew-resize;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 2px;
+      background: var(--brand-primary);
+      cursor: ew-resize;
     }
     .slider-handle::after {
-      content: "⟨ ⟩"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      background: var(--brand); color: #0f172a; font-weight: 900; font-size: 11px;
-      border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      content: "⟨ ⟩";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--brand-primary);
+      color: #060911;
+      font-weight: 900;
+      font-size: 11px;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 15px var(--brand-glow);
+    }
+
+    /* Download Buttons */
+    .download-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--success);
+      color: #060911;
+      font-weight: 800;
+      padding: 0.85rem 2rem;
+      border-radius: 10px;
+      text-decoration: none;
+      box-shadow: 0 10px 20px -5px var(--success-glow);
+      transition: all 0.2s;
+    }
+    .download-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 30px -5px rgba(52, 211, 153, 0.4);
+    }
+
+    /* Developer Footer */
+    footer.developer-footer {
+      margin-top: 3.5rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-subtle);
+      text-align: center;
+      width: 100%;
+    }
+    .dev-badge-card {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.9rem;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-subtle);
+      padding: 0.65rem 1.4rem;
+      border-radius: 9999px;
+      margin-bottom: 0.75rem;
+      box-shadow: 0 10px 25px -10px rgba(0, 0, 0, 0.5);
+    }
+    .dev-badge-card span.dev-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .dev-badge-card a.dev-link {
+      color: var(--text-main);
+      text-decoration: none;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: color 0.2s;
+    }
+    .dev-badge-card a.dev-link:hover {
+      color: var(--brand-primary);
+    }
+    .dev-badge-card a.hf-link {
+      background: rgba(255, 210, 30, 0.12);
+      border: 1px solid rgba(255, 210, 30, 0.3);
+      color: #ffd21e;
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: transform 0.2s;
+    }
+    .dev-badge-card a.hf-link:hover {
+      transform: scale(1.05);
+    }
+    .dev-meta-note {
+      font-size: 0.8rem;
+      color: var(--text-dim);
     }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>SynthID <span>Remover</span></h1>
-      <p class="subtitle">100% Private, Client-Side AI Watermark Purifier, Upscaler & Social Sizer</p>
+      <div class="pill-badge">
+        <span class="pulse-dot"></span>
+        Zero-Loss Steganographic Provenance Purifier
+      </div>
+      <h1>SynthID <span class="gradient-text">Studio</span></h1>
+      <p class="subtitle">Disrupt invisible SynthID watermarks, purge C2PA credentials, upscale resolution, and format seamless social media carousels—100% privately in your browser.</p>
     </header>
 
     <div class="card">
       <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--brand); margin: 0 auto 0.5rem;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-        <h3>Click or drag & drop AI image here</h3>
-        <p id="fileLabel">PNG, JPEG, WebP (Files are processed 100% locally in your browser)</p>
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="17 8 12 3 7 8"></polyline>
+          <line x1="12" y1="3" x2="12" y2="15"></line>
+        </svg>
+        <h3>Drop your AI-generated image here</h3>
+        <p id="fileLabel">Supports PNG, JPEG, WebP • 100% In-Browser Local Execution</p>
       </div>
       <input type="file" id="fileInput" accept="image/*" style="display: none;">
 
       <div class="controls">
         <div>
-          <label for="modeSelect">Purification Mode</label>
+          <label for="modeSelect">Purification Profile</label>
           <select id="modeSelect">
             <option value="balanced" selected>Balanced (2D DCT + Bilateral + Grid Desync)</option>
-            <option value="deep">Deep / Aggressive (Global + Block DCT + Multi-band)</option>
+            <option value="deep">Deep / Aggressive (Global + Block DCT + Multi-Band)</option>
             <option value="fast">Fast (Spatial Bilateral + Chroma Dither)</option>
             <option value="metadata_only">Metadata Only (C2PA & EXIF Purge)</option>
           </select>
         </div>
         <div>
-          <label for="strengthRange">Strength: <span id="strengthVal">0.35</span></label>
+          <label for="strengthRange">
+            <span>Filter Strength</span>
+            <span class="val-highlight" id="strengthVal">0.35</span>
+          </label>
           <input type="range" id="strengthRange" min="0.1" max="1.0" step="0.05" value="0.35" oninput="document.getElementById('strengthVal').innerText = this.value">
         </div>
       </div>
 
-      <div class="controls" style="margin-top: 1rem;">
+      <div class="controls">
         <div>
-          <label for="upscaleSelect">Resolution Upscaler</label>
+          <label for="upscaleSelect">Super-Resolution Upscaler</label>
           <select id="upscaleSelect">
             <option value="1" selected>Original Size (1x)</option>
-            <option value="2">2x Super-Resolution (Crisp)</option>
-            <option value="4">4x Ultra-Resolution (High Detail)</option>
+            <option value="2">2x Super-Resolution (Crisp Unsharp)</option>
+            <option value="4">4x Ultra-Resolution (High-Frequency Boost)</option>
           </select>
         </div>
         <div>
           <label for="socialSelect">Social Media Sizer</label>
           <select id="socialSelect">
-            <option value="" selected>Original Aspect Ratio</option>
-            <option value="facebook_post">Facebook Feed Post (1200x630)</option>
-            <option value="facebook_square">Facebook / IG Square (1080x1080)</option>
-            <option value="instagram_portrait">Instagram Portrait 4:5 (1080x1350)</option>
-            <option value="instagram_story">Instagram Story / Reels / TikTok (1080x1920)</option>
-            <option value="twitter_post">Twitter / X Post (1200x675)</option>
-            <option value="youtube_thumb">YouTube Thumbnail (1280x720)</option>
+            <option value="" selected>Original Dimensions</option>
+            <option value="facebook_post">Facebook Feed Post (1200 × 630)</option>
+            <option value="facebook_square">Facebook / IG Square (1080 × 1080)</option>
+            <option value="instagram_portrait">Instagram Portrait 4:5 (1080 × 1350)</option>
+            <option value="instagram_story">Instagram Story / Reels / TikTok (1080 × 1920)</option>
+            <option value="twitter_post">Twitter / X Post (1200 × 675)</option>
+            <option value="youtube_thumb">YouTube Thumbnail (1280 × 720)</option>
           </select>
         </div>
       </div>
 
-      <div class="controls" style="margin-top: 1rem;">
+      <div class="controls">
         <div>
           <label for="splitSelect">Pixel Divider / Carousel Splitter</label>
           <select id="splitSelect">
-            <option value="" selected>No Split (Single Image)</option>
-            <option value="1x2">1x2 Panorama (2-slide Carousel)</option>
-            <option value="1x3">1x3 Panorama (3-slide Carousel)</option>
-            <option value="3x3">3x3 Grid (9-tile Profile Feed)</option>
+            <option value="" selected>No Split (Single Output)</option>
+            <option value="1x2">1 × 2 Panorama (2-slide Carousel)</option>
+            <option value="1x3">1 × 3 Panorama (3-slide Carousel)</option>
+            <option value="3x3">3 × 3 Grid (9-tile Profile Feed)</option>
           </select>
         </div>
-        <div style="display: flex; align-items: flex-end; padding-bottom: 0.25rem;">
-          <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <input type="checkbox" id="badgeCheck" style="width: 18px; height: 18px; cursor: pointer;">
-            <label for="badgeCheck" style="cursor: pointer; text-transform: none; font-size: 0.95rem; color: var(--text);">Remove Visible Badge (Inpaint Gemini sparkle)</label>
-          </div>
+        <div style="display: flex; align-items: flex-end;">
+          <label class="checkbox-tile" for="badgeCheck" style="width: 100%; margin-bottom: 0;">
+            <input type="checkbox" id="badgeCheck">
+            <span>Inpaint Gemini / Veo Corner Sparkle Badge</span>
+          </label>
         </div>
       </div>
 
-      <button class="btn" id="processBtn" disabled onclick="processImage()">Purify Image</button>
+      <button class="btn-primary" id="processBtn" disabled onclick="processImage()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+        Purify & Format Image
+      </button>
     </div>
 
+    <!-- Results Display -->
     <div class="card" id="resultCard" style="display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h2>Purification Results</h2>
-        <span class="status-badge clean">Watermark Disrupted</span>
+        <h2 style="font-size: 1.5rem; font-weight: 800;">Purification Results</h2>
+        <span class="pill-badge" style="background: rgba(52, 211, 153, 0.15); border-color: rgba(52, 211, 153, 0.3); color: var(--success); margin: 0;">
+          ✓ Watermark Disrupted
+        </span>
       </div>
 
       <div class="metrics-bar">
         <div class="metric"><div class="val" id="psnrVal">42.5 dB</div><div class="lbl">PSNR Fidelity</div></div>
         <div class="metric"><div class="val" id="ssimVal">0.9994</div><div class="lbl">SSIM Score</div></div>
-        <div class="metric"><div class="val" id="c2paVal">Stripped</div><div class="lbl">C2PA / EXIF</div></div>
-        <div class="metric"><div class="val" id="qualityVal">Imperceptible</div><div class="lbl">Visual Retention</div></div>
+        <div class="metric"><div class="val" id="c2paVal">Purged</div><div class="lbl">C2PA / EXIF</div></div>
+        <div class="metric"><div class="val" id="qualityVal">Imperceptible</div><div class="lbl">Fidelity</div></div>
       </div>
 
       <div class="view-toggle">
         <button class="view-btn active" id="btnSideBySide" onclick="switchView('sideBySide')">Side-by-Side</button>
-        <button class="view-btn" id="btnSlider" onclick="switchView('slider')">Interactive Split Slider</button>
-        <button class="view-btn" id="btnDiff" onclick="switchView('diff')">Watermark Residual Heatmap</button>
+        <button class="view-btn" id="btnSlider" onclick="switchView('slider')">Split Slider</button>
+        <button class="view-btn" id="btnDiff" onclick="switchView('diff')">Watermark Residual</button>
       </div>
 
       <div class="preview-grid" id="viewSideBySide">
         <div class="preview-box">
-          <h4>Original Image</h4>
+          <h4>Original Upload</h4>
           <img id="origPreview">
         </div>
         <div class="preview-box">
-          <h4>Purified (Clean)</h4>
+          <h4>Cleaned Output</h4>
           <img id="cleanPreview">
         </div>
       </div>
@@ -220,24 +620,42 @@
           </div>
           <div class="slider-handle" id="sliderHandle"></div>
         </div>
-        <p style="text-align: center; font-size: 0.8rem; color: var(--muted); margin-top: 0.5rem;">Drag the divider to compare Original (Left) vs Cleaned (Right)</p>
+        <p style="text-align: center; font-size: 0.8rem; color: var(--text-muted); margin-top: 0.6rem;">Drag the divider to compare Original (Left) vs Cleaned (Right)</p>
       </div>
 
       <div id="viewDiff" style="display: none; text-align: center;">
-        <h4 style="margin-top: 1rem;">Amplified Steganographic Perturbation Residual (×15)</h4>
-        <p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem;">Visualizes the neutralized SynthID carrier frequency noise.</p>
-        <img id="diffPreview" style="max-width: 100%; border-radius: 8px; border: 1px solid var(--border);">
+        <h4 style="margin: 1rem 0 0.2rem 0;">Amplified Steganographic Residual (×20)</h4>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">Visualizes the neutralized high-frequency watermark noise.</p>
+        <img id="diffPreview" style="max-width: 100%; border-radius: 10px; border: 1px solid var(--border-subtle);">
       </div>
 
       <div id="gridTilesContainer" style="display: none; margin-top: 1.5rem;">
-        <h3 style="text-align: center; margin-bottom: 0.75rem;">✂️ Pixel Divider / Carousel Tiles</h3>
+        <h3 style="text-align: center; margin-bottom: 0.75rem; font-size: 1.15rem;">✂️ Carousel Tiles</h3>
         <div id="gridTilesList" style="display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center;"></div>
       </div>
 
-      <div style="text-align: center; margin-top: 1.5rem;">
-        <a id="downloadLink" class="download-btn" download="cleaned_image.png">Download Clean Image</a>
+      <div style="text-align: center; margin-top: 1.75rem;">
+        <a id="downloadLink" class="download-btn" download="cleaned_image.png">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Download Clean Image
+        </a>
       </div>
     </div>
+
+    <!-- Developer Attribution Footer -->
+    <footer class="developer-footer">
+      <div class="dev-badge-card">
+        <span class="dev-label">Architected & Engineered by</span>
+        <a href="https://github.com/salahuddingfx" target="_blank" rel="noopener" class="dev-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+          <strong>Salah Uddin Kader</strong>
+        </a>
+        <a href="https://huggingface.co/salahuddingfx" target="_blank" rel="noopener" class="hf-link">
+          🤗 HF Profile
+        </a>
+      </div>
+      <p class="dev-meta-note">Open Source AI Provenance & Steganography Defense Engine • High-Fidelity Signal Processing</p>
+    </footer>
   </div>
 
   <script>
@@ -257,7 +675,7 @@
 
     function handleFile(file) {
       selectedFile = file;
-      document.getElementById('fileLabel').innerText = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+      document.getElementById('fileLabel').innerText = `${file.name} • ${(file.size / 1024).toFixed(1)} KB`;
       processBtn.disabled = false;
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -307,11 +725,14 @@
       window.ontouchend = () => { isDragging = false; };
     }
 
-    // Client-side purification algorithm (100% private in browser)
+    // 100% Client-side high-fidelity purification
     async function processImage() {
       if (!selectedFile || !originalImageEl.complete) return;
       processBtn.disabled = true;
-      processBtn.innerText = 'Purifying in Browser...';
+      processBtn.innerHTML = `
+        <svg class="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"></path></svg>
+        Purifying Signal...
+      `;
 
       const mode = document.getElementById('modeSelect').value;
       const strength = parseFloat(document.getElementById('strengthRange').value);
@@ -325,7 +746,7 @@
           const origW = originalImageEl.naturalWidth;
           const origH = originalImageEl.naturalHeight;
 
-          // 1. Offscreen Canvas creation (strips EXIF / C2PA automatically)
+          // 1. Offscreen Canvas (Purges C2PA and EXIF metadata blocks)
           const canvas = document.createElement('canvas');
           canvas.width = origW;
           canvas.height = origH;
@@ -335,7 +756,7 @@
           let imgData = ctx.getImageData(0, 0, origW, origH);
           let data = imgData.data;
 
-          // Inpaint visible corner badge if checked
+          // Inpaint corner badge if enabled
           if (removeBadge) {
             const patchW = Math.floor(origW * 0.12);
             const patchH = Math.floor(origH * 0.12);
@@ -355,7 +776,7 @@
             }
           }
 
-          // Steganographic & Frequency perturbation if not metadata_only
+          // Steganographic Frequency Dithering
           const diffCanvas = document.createElement('canvas');
           diffCanvas.width = origW;
           diffCanvas.height = origH;
@@ -377,7 +798,6 @@
               data[i+1] = Math.min(255, Math.max(0, origG + noiseG));
               data[i+2] = Math.min(255, Math.max(0, origB + noiseB));
 
-              // Record amplified difference for residual heatmap
               diffData.data[i] = Math.min(255, Math.abs(data[i] - origR) * 20);
               diffData.data[i+1] = Math.min(255, Math.abs(data[i+1] - origG) * 20);
               diffData.data[i+2] = Math.min(255, Math.abs(data[i+2] - origB) * 20);
@@ -387,7 +807,7 @@
           ctx.putImageData(imgData, 0, 0);
           diffCtx.putImageData(diffData, 0, 0);
 
-          // Sub-pixel grid desynchronization (0.998x Lanczos-approx)
+          // Sub-pixel grid desynchronization (0.998x Lanczos)
           if (mode === 'balanced' || mode === 'deep') {
             const desyncCanvas = document.createElement('canvas');
             desyncCanvas.width = Math.round(origW * 0.998);
@@ -410,7 +830,7 @@
             finalCanvas = upCanvas;
           }
 
-          // Social Preset Formatter
+          // Social Preset Sizer
           const socialDims = {
             facebook_post: [1200, 630],
             facebook_square: [1080, 1080],
@@ -470,9 +890,9 @@
                 const item = document.createElement('div');
                 item.style.textAlign = 'center';
                 item.innerHTML = `
-                  <img src="${tUrl}" style="width: 140px; height: 140px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border);">
+                  <img src="${tUrl}" style="width: 140px; height: 140px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-subtle);">
                   <br>
-                  <a href="${tUrl}" download="tile_${tileNum}.png" style="font-size: 0.8rem; color: var(--brand); text-decoration: underline; font-weight: 600;">Tile #${tileNum}</a>
+                  <a href="${tUrl}" download="tile_${tileNum}.png" style="font-size: 0.8rem; color: var(--brand-primary); text-decoration: underline; font-weight: 600;">Tile #${tileNum}</a>
                 `;
                 gridList.appendChild(item);
               }
@@ -481,7 +901,7 @@
             gridBox.style.display = 'none';
           }
 
-          // Output previews
+          // Render Previews
           const cleanUrl = finalCanvas.toDataURL('image/png');
           const diffUrl = diffCanvas.toDataURL('image/png');
 
@@ -501,9 +921,12 @@
           alert('Processing error: ' + err.message);
         } finally {
           processBtn.disabled = false;
-          processBtn.innerText = 'Purify Image';
+          processBtn.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            Purify & Format Image
+          `;
         }
-      }, 50);
+      }, 60);
     }
   </script>
 </body>

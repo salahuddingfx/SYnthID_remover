@@ -459,7 +459,14 @@ class SynthIDWebHandler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.end_headers()
-            self.wfile.write(HTML_PAGE.encode("utf-8"))
+            
+            # Prefer serving the modernized root index.html if present
+            root_index = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "index.html"))
+            if os.path.exists(root_index):
+                with open(root_index, "rb") as f:
+                    self.wfile.write(f.read())
+            else:
+                self.wfile.write(HTML_PAGE.encode("utf-8"))
         elif parsed.path in ("/healthz", "/healthcheck"):
             self.send_json({"status": "healthy", "service": "synthid-remover"})
         elif parsed.path == "/favicon.ico":
