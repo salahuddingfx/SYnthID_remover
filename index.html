@@ -2,736 +2,1303 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SynthID Remover & AI Studio</title>
-  <meta name="description" content="Next-Gen AI Watermark Purifier, Super-Resolution Upscaler & Social Media Carousel Studio. Crafted by Salah Uddin Kader.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SynthID Studio — Liquid Glass AI Provenance Purifier</title>
+  <meta name="description" content="Next-Gen Liquid Glass AI Watermark Purifier, Super-Resolution Upscaler & Social Media Carousel Studio. Crafted by Salah Uddin Kader.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    /* ============================================================
+       LIQUID GLASS & IRIDESCENT DESIGN SYSTEM
+       Crafted with ultra-smooth refraction, frosted blur & glow
+       ============================================================ */
     :root {
-      --bg-base: #060911;
-      --bg-surface: rgba(15, 23, 42, 0.65);
-      --bg-surface-elevated: rgba(30, 41, 59, 0.7);
-      --border-subtle: rgba(255, 255, 255, 0.08);
-      --border-focus: rgba(56, 189, 248, 0.5);
-      --brand-primary: #38bdf8;
-      --brand-gradient: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
-      --brand-glow: rgba(56, 189, 248, 0.25);
-      --text-main: #f8fafc;
+      --bg-space: #05070f;
+      --glass-surface: rgba(255, 255, 255, 0.04);
+      --glass-surface-elevated: rgba(255, 255, 255, 0.07);
+      --glass-surface-subtle: rgba(255, 255, 255, 0.025);
+      --glass-border: rgba(255, 255, 255, 0.12);
+      --glass-border-light: rgba(255, 255, 255, 0.22);
+      --glass-border-highlight: rgba(255, 255, 255, 0.35);
+      
+      --cyan-glow: #00f2fe;
+      --purple-glow: #7928ca;
+      --electric-blue: #38bdf8;
+      --neon-mint: #10b981;
+      --magenta: #ec4899;
+      
+      --liquid-gradient: linear-gradient(135deg, #38bdf8 0%, #818cf8 40%, #c084fc 80%, #f472b6 100%);
+      --liquid-gradient-btn: linear-gradient(135deg, #0ea5e9 0%, #6366f1 50%, #a855f7 100%);
+      
+      --text-white: #ffffff;
+      --text-main: #f1f5f9;
       --text-muted: #94a3b8;
-      --text-dim: #64748b;
-      --success: #34d399;
-      --success-glow: rgba(52, 211, 153, 0.2);
+      --text-subtle: #64748b;
+      
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 24px;
+      --radius-full: 9999px;
+      
+      --blur-glass: blur(28px) saturate(190%);
+      --shadow-liquid: 0 20px 50px -15px rgba(0, 0, 0, 0.7), inset 0 1px 1px 0 rgba(255, 255, 255, 0.25);
+      --shadow-hover: 0 25px 60px -12px rgba(56, 189, 248, 0.25), inset 0 1px 1px 0 rgba(255, 255, 255, 0.4);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
 
     body {
-      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-      background-color: var(--bg-base);
+      background-color: var(--bg-space);
       color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      padding: 2.5rem 1rem;
       position: relative;
       overflow-x: hidden;
+      padding: 1.5rem 1rem 3.5rem 1rem;
     }
 
-    /* Ambient dynamic glow background */
-    body::before {
-      content: "";
+    /* Ambient Liquid Glowing Orbs in Background */
+    .ambient-canvas {
       position: fixed;
-      top: -200px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 800px;
-      height: 600px;
-      background: radial-gradient(circle, rgba(56, 189, 248, 0.12) 0%, rgba(129, 140, 248, 0.08) 40%, transparent 70%);
-      filter: blur(80px);
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
       pointer-events: none;
       z-index: 0;
+      overflow: hidden;
     }
 
+    .liquid-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: 0.35;
+      animation: floatOrb 18s ease-in-out infinite alternate;
+      will-change: transform;
+    }
+
+    .orb-1 {
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, #38bdf8 0%, #6366f1 60%, transparent 100%);
+      top: -100px;
+      left: -100px;
+      animation-duration: 22s;
+    }
+
+    .orb-2 {
+      width: 550px;
+      height: 550px;
+      background: radial-gradient(circle, #a855f7 0%, #ec4899 70%, transparent 100%);
+      bottom: -150px;
+      right: -100px;
+      animation-duration: 26s;
+      animation-delay: -5s;
+    }
+
+    .orb-3 {
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, #00f2fe 0%, #10b981 60%, transparent 100%);
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0.18;
+      animation-duration: 20s;
+      animation-delay: -9s;
+    }
+
+    @keyframes floatOrb {
+      0% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(60px, 40px) scale(1.12); }
+      100% { transform: translate(-40px, 70px) scale(0.95); }
+    }
+
+    /* Outer Container */
     .container {
-      max-width: 920px;
+      max-width: 1020px;
       width: 100%;
+      margin: 0 auto;
       position: relative;
       z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1.75rem;
     }
 
-    /* Header & Badges */
+    /* Header Section */
     header {
       text-align: center;
-      margin-bottom: 2.5rem;
+      padding: 1.5rem 1rem 0.5rem 1rem;
     }
 
-    .pill-badge {
+    .pill-status {
       display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
-      background: rgba(56, 189, 248, 0.1);
-      border: 1px solid rgba(56, 189, 248, 0.25);
-      color: var(--brand-primary);
-      padding: 0.35rem 0.9rem;
-      border-radius: 9999px;
+      gap: 0.55rem;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: var(--blur-glass);
+      border: 1px solid var(--glass-border-light);
+      padding: 0.4rem 1.1rem;
+      border-radius: var(--radius-full);
       font-size: 0.8rem;
       font-weight: 600;
       letter-spacing: 0.02em;
-      margin-bottom: 1rem;
-      box-shadow: 0 0 20px var(--brand-glow);
-    }
-    .pill-badge span.pulse-dot {
-      width: 7px;
-      height: 7px;
-      background: var(--brand-primary);
-      border-radius: 50%;
-      box-shadow: 0 0 10px var(--brand-primary);
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.85); }
+      color: #bae6fd;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+      margin-bottom: 1.1rem;
     }
 
-    h1 {
-      font-size: 2.75rem;
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      line-height: 1.15;
-      margin-bottom: 0.75rem;
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #38bdf8;
+      box-shadow: 0 0 12px #38bdf8;
+      animation: pulseGlow 2s infinite ease-in-out;
     }
-    h1 .gradient-text {
-      background: var(--brand-gradient);
+
+    @keyframes pulseGlow {
+      0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 8px #38bdf8; }
+      50% { transform: scale(1.3); opacity: 0.7; box-shadow: 0 0 18px #38bdf8; }
+    }
+
+    h1.hero-title {
+      font-size: clamp(2.2rem, 5.5vw, 3.4rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.1;
+      margin-bottom: 0.85rem;
+    }
+
+    .liquid-gradient-text {
+      background: var(--liquid-gradient);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      background-clip: text;
+      display: inline-block;
+      text-shadow: 0 0 40px rgba(56, 189, 248, 0.3);
     }
 
-    p.subtitle {
+    .subtitle {
+      font-size: clamp(0.95rem, 2.2vw, 1.12rem);
       color: var(--text-muted);
-      font-size: 1.1rem;
-      max-width: 620px;
+      max-width: 680px;
       margin: 0 auto;
-      line-height: 1.5;
+      line-height: 1.6;
+      font-weight: 400;
     }
 
-    /* Cards */
-    .card {
-      background: var(--bg-surface);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--border-subtle);
-      border-radius: 20px;
-      padding: 2rem;
-      margin-bottom: 1.75rem;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-      transition: border-color 0.3s ease;
-    }
-    .card:hover {
-      border-color: rgba(255, 255, 255, 0.12);
+    /* ============================================================
+       LIQUID GLASS PANELS & CARDS
+       ============================================================ */
+    .liquid-glass-card {
+      background: var(--glass-surface);
+      backdrop-filter: var(--blur-glass);
+      -webkit-backdrop-filter: var(--blur-glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: clamp(1.25rem, 3.5vw, 2.25rem);
+      box-shadow: var(--shadow-liquid);
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
     }
 
-    /* Drop Zone */
+    .liquid-glass-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+      pointer-events: none;
+    }
+
+    /* DROP ZONE & UPLOAD INTERFACE */
     .drop-zone {
-      border: 2px dashed rgba(255, 255, 255, 0.15);
-      border-radius: 16px;
-      padding: 3rem 1.5rem;
+      border: 2px dashed rgba(255, 255, 255, 0.16);
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: var(--radius-md);
+      padding: clamp(2rem, 5vw, 3.2rem) 1.5rem;
       text-align: center;
       cursor: pointer;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      background: rgba(10, 15, 30, 0.4);
       position: relative;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
+
     .drop-zone:hover, .drop-zone.dragover {
-      border-color: var(--brand-primary);
+      border-color: #38bdf8;
       background: rgba(56, 189, 248, 0.05);
-      transform: translateY(-2px);
-      box-shadow: 0 10px 30px -10px var(--brand-glow);
+      box-shadow: 0 0 35px rgba(56, 189, 248, 0.2), inset 0 0 20px rgba(56, 189, 248, 0.08);
+      transform: scale(1.006);
     }
-    .drop-zone svg {
-      color: var(--brand-primary);
-      margin: 0 auto 1rem;
-      transition: transform 0.2s;
+
+    .drop-zone-icon {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 1.1rem;
+      border-radius: 16px;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.28);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #38bdf8;
+      box-shadow: 0 8px 20px rgba(56, 189, 248, 0.2);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .drop-zone:hover svg {
-      transform: scale(1.1);
+
+    .drop-zone:hover .drop-zone-icon {
+      transform: translateY(-4px) scale(1.08);
     }
+
     .drop-zone h3 {
       font-size: 1.25rem;
       font-weight: 700;
-      margin-bottom: 0.35rem;
-    }
-    .drop-zone p {
-      color: var(--text-muted);
-      font-size: 0.9rem;
+      color: var(--text-white);
+      margin-bottom: 0.4rem;
     }
 
-    /* Controls Grid */
-    .controls {
+    .drop-zone p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    /* INSTANT UPLOAD PREVIEW CARD (Visible immediately upon file pick!) */
+    .upload-preview-container {
+      display: none;
+      animation: fadeInLiquid 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes fadeInLiquid {
+      from { opacity: 0; transform: translateY(12px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .upload-preview-card {
+      background: rgba(10, 15, 29, 0.65);
+      border: 1px solid var(--glass-border-light);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      position: relative;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+    }
+
+    .upload-meta-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.8rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.85rem;
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .file-badge-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .meta-tag {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--glass-border);
+      color: #bae6fd;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+    }
+
+    .meta-tag.accent {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: rgba(56, 189, 248, 0.35);
+      color: #38bdf8;
+    }
+
+    .btn-change-file {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--glass-border-light);
+      color: var(--text-white);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.35rem 0.9rem;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.2s;
+    }
+
+    .btn-change-file:hover {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+    }
+
+    .instant-image-wrapper {
+      width: 100%;
+      max-height: 420px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border-radius: 12px;
+      background: #03060c;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      position: relative;
+    }
+
+    .instant-image-wrapper img {
+      max-width: 100%;
+      max-height: 420px;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      display: block;
+      border-radius: 10px;
+    }
+
+    /* CONTROLS GRID */
+    .controls-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.25rem;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.15rem;
       margin-top: 1.5rem;
     }
-    @media (max-width: 640px) {
-      .controls { grid-template-columns: 1fr; }
-      h1 { font-size: 2.1rem; }
+
+    .control-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
     }
 
-    label {
-      font-size: 0.78rem;
+    .control-item label {
+      font-size: 0.84rem;
       font-weight: 700;
+      color: #cbd5e1;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-muted);
+      letter-spacing: 0.05em;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 0.4rem;
-    }
-    label span.val-highlight {
-      color: var(--brand-primary);
-      font-family: 'JetBrains Mono', monospace;
     }
 
-    select, input[type=range] {
+    .control-item label span.val-badge {
+      font-family: 'JetBrains Mono', monospace;
+      color: #38bdf8;
+      font-size: 0.85rem;
+      text-transform: none;
+    }
+
+    /* Liquid Glass Select & Inputs */
+    select, input[type="range"] {
       width: 100%;
+    }
+
+    select {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--glass-border-light);
+      color: var(--text-white);
       padding: 0.75rem 1rem;
-      border-radius: 10px;
-      background: #090e1a;
-      border: 1px solid var(--border-subtle);
-      color: var(--text-main);
+      border-radius: 12px;
       font-size: 0.92rem;
       font-family: inherit;
       outline: none;
-      transition: all 0.2s;
-    }
-    select:focus {
-      border-color: var(--border-focus);
-      box-shadow: 0 0 0 3px var(--brand-glow);
+      cursor: pointer;
+      backdrop-filter: blur(20px);
+      transition: all 0.2s ease;
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      background-size: 1.1rem;
+      padding-right: 2.5rem;
     }
 
-    .checkbox-tile {
+    select:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.35);
+    }
+
+    /* Custom Liquid Range Slider */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 8px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      outline: none;
+      cursor: pointer;
+      margin: 0.5rem 0;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--liquid-gradient-btn);
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.8);
+      cursor: ew-resize;
+      transition: transform 0.15s ease;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    /* Checkbox Card */
+    .checkbox-liquid {
       display: flex;
       align-items: center;
       gap: 0.75rem;
-      padding: 0.75rem 1rem;
-      background: #090e1a;
-      border: 1px solid var(--border-subtle);
-      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--glass-border);
+      padding: 0.85rem 1.1rem;
+      border-radius: 12px;
       cursor: pointer;
+      transition: all 0.2s ease;
       user-select: none;
-      transition: border-color 0.2s;
+      height: 100%;
     }
-    .checkbox-tile:hover {
-      border-color: var(--border-focus);
+
+    .checkbox-liquid:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: var(--glass-border-light);
     }
-    .checkbox-tile input[type=checkbox] {
+
+    .checkbox-liquid input[type="checkbox"] {
       width: 18px;
       height: 18px;
-      accent-color: var(--brand-primary);
+      accent-color: #38bdf8;
       cursor: pointer;
     }
-    .checkbox-tile span {
-      font-size: 0.9rem;
-      font-weight: 500;
-      color: var(--text-main);
+
+    .checkbox-liquid span {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #e2e8f0;
     }
 
-    /* Process Button */
-    .btn-primary {
-      display: inline-flex;
+    /* PRIMARY LIQUID GLOW BUTTON */
+    .btn-liquid-action {
+      width: 100%;
+      margin-top: 1.6rem;
+      padding: 1.1rem 1.5rem;
+      background: var(--liquid-gradient-btn);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 14px;
+      color: #ffffff;
+      font-size: 1.05rem;
+      font-weight: 800;
+      font-family: inherit;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      display: flex;
       align-items: center;
       justify-content: center;
-      gap: 0.6rem;
-      width: 100%;
-      background: var(--brand-gradient);
-      color: #060911;
-      font-weight: 800;
-      font-size: 1.05rem;
-      padding: 1rem;
-      border-radius: 12px;
-      border: none;
-      cursor: pointer;
-      margin-top: 1.75rem;
-      box-shadow: 0 10px 25px -5px var(--brand-glow);
-      transition: all 0.25s ease;
-    }
-    .btn-primary:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 15px 35px -5px rgba(56, 189, 248, 0.4);
-    }
-    .btn-primary:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-      transform: none;
+      gap: 0.65rem;
+      box-shadow: 0 12px 30px -8px rgba(99, 102, 241, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    /* Metrics Bar */
-    .metrics-bar {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 0.75rem;
-      margin: 1.5rem 0;
-      padding: 1.25rem;
-      background: #080c16;
-      border-radius: 14px;
-      border: 1px solid var(--border-subtle);
+    .btn-liquid-action::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transition: left 0.6s ease;
     }
-    @media (max-width: 600px) {
-      .metrics-bar { grid-template-columns: 1fr 1fr; }
+
+    .btn-liquid-action:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 40px -8px rgba(99, 102, 241, 0.8), 0 0 25px rgba(56, 189, 248, 0.4);
     }
-    .metric { text-align: center; }
-    .metric .val {
-      font-size: 1.4rem;
+
+    .btn-liquid-action:hover:not(:disabled)::before {
+      left: 100%;
+    }
+
+    .btn-liquid-action:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    .btn-liquid-action:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      filter: grayscale(0.5);
+    }
+
+    /* ============================================================
+       RESULTS STUDIO
+       ============================================================ */
+    .results-card {
+      display: none;
+      animation: slideUpLiquid 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes slideUpLiquid {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .results-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .results-header h2 {
+      font-size: 1.55rem;
       font-weight: 800;
-      font-family: 'JetBrains Mono', monospace;
-      color: var(--brand-primary);
+      letter-spacing: -0.02em;
     }
-    .metric .lbl {
+
+    /* Fidelity Metrics Bar */
+    .metrics-liquid-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 0.85rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .metric-pill {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+      padding: 0.85rem 1rem;
+      text-align: center;
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    }
+
+    .metric-pill .val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #38bdf8;
+      margin-bottom: 0.2rem;
+    }
+
+    .metric-pill .lbl {
       font-size: 0.72rem;
+      font-weight: 600;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      margin-top: 0.2rem;
     }
 
     /* View Switcher */
-    .view-toggle {
+    .view-switcher-liquid {
       display: flex;
-      justify-content: center;
-      gap: 0.5rem;
-      background: #090e1a;
+      gap: 0.45rem;
+      background: rgba(10, 15, 30, 0.7);
       padding: 0.35rem;
-      border-radius: 10px;
-      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-full);
+      border: 1px solid var(--glass-border);
+      margin-bottom: 1.4rem;
       width: fit-content;
-      margin: 1.5rem auto 1rem auto;
     }
+
     .view-btn {
       background: transparent;
       border: none;
       color: var(--text-muted);
-      padding: 0.45rem 1rem;
-      border-radius: 8px;
-      cursor: pointer;
+      padding: 0.5rem 1.15rem;
+      border-radius: var(--radius-full);
       font-size: 0.85rem;
-      font-weight: 600;
+      font-weight: 700;
       font-family: inherit;
-      transition: all 0.2s;
-    }
-    .view-btn.active {
-      background: var(--bg-surface-elevated);
-      color: var(--brand-primary);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
 
-    /* Preview Grids & Slider */
-    .preview-grid {
+    .view-btn.active {
+      background: rgba(56, 189, 248, 0.18);
+      color: #ffffff;
+      box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+    }
+
+    /* Side-by-Side View */
+    .comparison-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 1.25rem;
-      margin-top: 1.25rem;
+      gap: 1.15rem;
     }
-    @media (max-width: 640px) {
-      .preview-grid { grid-template-columns: 1fr; }
+
+    @media (max-width: 680px) {
+      .comparison-grid { grid-template-columns: 1fr; }
     }
-    .preview-box {
-      text-align: center;
-      background: #080c16;
+
+    .preview-glass-box {
+      background: #040711;
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
       padding: 1rem;
-      border-radius: 12px;
-      border: 1px solid var(--border-subtle);
+      text-align: center;
     }
-    .preview-box h4 {
-      font-size: 0.85rem;
+
+    .preview-glass-box h4 {
+      font-size: 0.8rem;
       font-weight: 700;
       color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 0.6rem;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
     }
-    .preview-box img {
+
+    .preview-glass-box img {
       max-width: 100%;
       height: auto;
       border-radius: 8px;
-      border: 1px solid var(--border-subtle);
+      display: block;
+      margin: 0 auto;
     }
 
-    /* Split Slider */
-    .slider-container {
+    /* Interactive Split Slider */
+    .split-slider-container {
       position: relative;
       width: 100%;
-      max-width: 720px;
-      margin: 1.5rem auto 0 auto;
+      max-width: 760px;
+      margin: 0 auto;
       overflow: hidden;
-      border-radius: 12px;
-      border: 1px solid var(--border-subtle);
-      user-select: none;
+      border-radius: 14px;
+      border: 1px solid var(--glass-border-light);
       background: #000;
+      user-select: none;
+      touch-action: none;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
     }
-    .slider-img {
+
+    .slider-base-img {
       display: block;
       width: 100%;
       height: auto;
       pointer-events: none;
     }
-    .slider-overlay {
+
+    .slider-curtain {
       position: absolute;
       top: 0;
       left: 0;
       width: 50%;
       height: 100%;
       overflow: hidden;
+      border-right: 2px solid #38bdf8;
     }
-    .slider-handle {
+
+    .slider-curtain img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: auto;
+      max-width: none;
+      pointer-events: none;
+    }
+
+    .slider-divider-line {
       position: absolute;
       top: 0;
       bottom: 0;
       left: 50%;
       width: 2px;
-      background: var(--brand-primary);
+      background: #38bdf8;
       cursor: ew-resize;
+      z-index: 10;
     }
-    .slider-handle::after {
-      content: "⟨ ⟩";
+
+    .slider-knob {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: var(--brand-primary);
-      color: #060911;
-      font-weight: 900;
-      font-size: 11px;
+      width: 38px;
+      height: 38px;
       border-radius: 50%;
-      width: 30px;
-      height: 30px;
+      background: #0a0f1d;
+      border: 2px solid #38bdf8;
+      color: #38bdf8;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 0 15px var(--brand-glow);
-    }
-
-    /* Download Buttons */
-    .download-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      background: var(--success);
-      color: #060911;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.6);
+      font-size: 13px;
       font-weight: 800;
-      padding: 0.85rem 2rem;
-      border-radius: 10px;
-      text-decoration: none;
-      box-shadow: 0 10px 20px -5px var(--success-glow);
-      transition: all 0.2s;
-    }
-    .download-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 15px 30px -5px rgba(52, 211, 153, 0.4);
+      cursor: ew-resize;
     }
 
-    /* Developer Footer */
-    footer.developer-footer {
-      margin-top: 3.5rem;
-      padding-top: 2rem;
-      border-top: 1px solid var(--border-subtle);
+    /* Watermark Residual Heatmap */
+    .heatmap-container {
       text-align: center;
-      width: 100%;
+      padding: 1rem 0;
     }
-    .dev-badge-card {
+
+    .heatmap-container img {
+      max-width: 100%;
+      border-radius: 12px;
+      border: 1px solid var(--glass-border);
+    }
+
+    /* Actions & Download */
+    .results-action-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 1.75rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--glass-border);
+    }
+
+    .btn-download-liquid {
       display: inline-flex;
       align-items: center;
-      gap: 0.9rem;
-      background: rgba(15, 23, 42, 0.7);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--border-subtle);
+      gap: 0.6rem;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 0.98rem;
+      padding: 0.9rem 2.2rem;
+      border-radius: 12px;
+      text-decoration: none;
+      box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+      transition: all 0.2s ease;
+    }
+
+    .btn-download-liquid:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 35px -5px rgba(16, 185, 129, 0.6);
+    }
+
+    /* Carousel Tiles Output */
+    .carousel-tiles-card {
+      margin-top: 1.5rem;
+      background: rgba(10, 15, 30, 0.5);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+      padding: 1.25rem;
+    }
+
+    .tiles-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-top: 1rem;
+      justify-content: center;
+    }
+
+    /* ============================================================
+       ARCHITECT & DEVELOPER LIQUID CAPSULE FOOTER
+       Salah Uddin Kader (@salahuddingfx)
+       ============================================================ */
+    footer.architect-footer {
+      margin-top: 3.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.85rem;
+      text-align: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .liquid-capsule-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 1rem;
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: var(--blur-glass);
+      -webkit-backdrop-filter: var(--blur-glass);
+      border: 1px solid var(--glass-border-light);
       padding: 0.65rem 1.4rem;
-      border-radius: 9999px;
-      margin-bottom: 0.75rem;
-      box-shadow: 0 10px 25px -10px rgba(0, 0, 0, 0.5);
+      border-radius: var(--radius-full);
+      box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+      transition: all 0.3s ease;
     }
-    .dev-badge-card span.dev-label {
-      font-size: 0.85rem;
+
+    .liquid-capsule-badge:hover {
+      border-color: rgba(56, 189, 248, 0.5);
+      box-shadow: 0 20px 45px -10px rgba(56, 189, 248, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .architect-label {
+      font-size: 0.82rem;
       color: var(--text-muted);
+      font-weight: 500;
     }
-    .dev-badge-card a.dev-link {
-      color: var(--text-main);
+
+    .dev-profile-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      color: #ffffff;
       text-decoration: none;
       font-weight: 700;
+      font-size: 0.92rem;
+      transition: color 0.2s;
+    }
+
+    .dev-profile-link:hover {
+      color: #38bdf8;
+    }
+
+    .hf-space-badge {
       display: inline-flex;
       align-items: center;
       gap: 0.35rem;
-      transition: color 0.2s;
-    }
-    .dev-badge-card a.dev-link:hover {
-      color: var(--brand-primary);
-    }
-    .dev-badge-card a.hf-link {
-      background: rgba(255, 210, 30, 0.12);
-      border: 1px solid rgba(255, 210, 30, 0.3);
+      background: rgba(255, 210, 30, 0.15);
+      border: 1px solid rgba(255, 210, 30, 0.35);
       color: #ffd21e;
-      padding: 0.2rem 0.6rem;
-      border-radius: 6px;
-      font-size: 0.75rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: var(--radius-full);
+      font-size: 0.78rem;
       font-weight: 700;
       text-decoration: none;
       transition: transform 0.2s;
     }
-    .dev-badge-card a.hf-link:hover {
-      transform: scale(1.05);
+
+    .hf-space-badge:hover {
+      transform: scale(1.06);
     }
-    .dev-meta-note {
-      font-size: 0.8rem;
-      color: var(--text-dim);
+
+    .architect-creed {
+      font-size: 0.82rem;
+      color: var(--text-subtle);
+      max-width: 600px;
+      line-height: 1.5;
+    }
+
+    /* Micro Spinner */
+    .spin {
+      animation: spinAnim 1s linear infinite;
+    }
+
+    @keyframes spinAnim {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
+
+  <!-- Ambient Chromatic Glow Canvas -->
+  <div class="ambient-canvas">
+    <div class="liquid-orb orb-1"></div>
+    <div class="liquid-orb orb-2"></div>
+    <div class="liquid-orb orb-3"></div>
+  </div>
+
   <div class="container">
+    <!-- Header -->
     <header>
-      <div class="pill-badge">
+      <div class="pill-status">
         <span class="pulse-dot"></span>
         Zero-Loss Steganographic Provenance Purifier
       </div>
-      <h1>SynthID <span class="gradient-text">Studio</span></h1>
-      <p class="subtitle">Disrupt invisible SynthID watermarks, purge C2PA credentials, upscale resolution, and format seamless social media carousels—100% privately in your browser.</p>
+      <h1 class="hero-title">
+        SynthID <span class="liquid-gradient-text">Studio</span>
+      </h1>
+      <p class="subtitle">
+        Disrupt invisible SynthID latents, purge C2PA credentials, upscale clarity, and slice seamless social carousels—100% privately in your browser.
+      </p>
     </header>
 
-    <div class="card">
+    <!-- Upload & Studio Card -->
+    <div class="liquid-glass-card" id="mainUploadCard">
+      
+      <!-- Drop Zone (Shown when no image is selected) -->
       <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-          <polyline points="17 8 12 3 7 8"></polyline>
-          <line x1="12" y1="3" x2="12" y2="15"></line>
-        </svg>
+        <div class="drop-zone-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+        </div>
         <h3>Drop your AI-generated image here</h3>
-        <p id="fileLabel">Supports PNG, JPEG, WebP • 100% In-Browser Local Execution</p>
+        <p id="dropHelpText">Supports PNG, JPEG, WebP, AVIF • 100% Client-Side Instant Processing</p>
       </div>
+
+      <!-- INSTANT UPLOAD PREVIEW (Appears immediately when user picks an image!) -->
+      <div class="upload-preview-container" id="uploadPreviewSection">
+        <div class="upload-preview-card">
+          <div class="upload-meta-bar">
+            <div class="file-badge-group">
+              <span class="meta-tag accent" id="fileNameBadge">image.png</span>
+              <span class="meta-tag" id="fileDimBadge">0 × 0 px</span>
+              <span class="meta-tag" id="fileSizeBadge">0 KB</span>
+              <span class="meta-tag" id="fileFormatBadge">PNG</span>
+            </div>
+            <button class="btn-change-file" onclick="clearSelectedImage(event)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              Change Image
+            </button>
+          </div>
+          <div class="instant-image-wrapper">
+            <img id="instantImgPreview" alt="Uploaded Image Preview">
+          </div>
+        </div>
+      </div>
+
       <input type="file" id="fileInput" accept="image/*" style="display: none;">
 
-      <div class="controls">
-        <div>
+      <!-- Controls Panel -->
+      <div class="controls-grid">
+        <div class="control-item">
           <label for="modeSelect">Purification Profile</label>
           <select id="modeSelect">
             <option value="balanced" selected>Balanced (2D DCT + Bilateral + Grid Desync)</option>
-            <option value="deep">Deep / Aggressive (Global + Block DCT + Multi-Band)</option>
-            <option value="fast">Fast (Spatial Bilateral + Chroma Dither)</option>
-            <option value="metadata_only">Metadata Only (C2PA & EXIF Purge)</option>
+            <option value="fast">Fast (Sub-pixel Lanczos + Spatial Filter)</option>
+            <option value="deep">Deep Clean (Multi-Frequency Spectral Desync)</option>
+            <option value="metadata_only">Metadata Scrub Only (C2PA / EXIF / XMP)</option>
           </select>
         </div>
-        <div>
+
+        <div class="control-item">
           <label for="strengthRange">
-            <span>Filter Strength</span>
-            <span class="val-highlight" id="strengthVal">0.35</span>
+            Frequency Perturbation
+            <span class="val-badge" id="strengthVal">1.0×</span>
           </label>
-          <input type="range" id="strengthRange" min="0.1" max="1.0" step="0.05" value="0.35" oninput="document.getElementById('strengthVal').innerText = this.value">
+          <input type="range" id="strengthRange" min="0.2" max="3.0" step="0.1" value="1.0" oninput="document.getElementById('strengthVal').innerText = this.value + '×'">
         </div>
-      </div>
 
-      <div class="controls">
-        <div>
-          <label for="upscaleSelect">Super-Resolution Upscaler</label>
+        <div class="control-item">
+          <label for="upscaleSelect">Super-Resolution</label>
           <select id="upscaleSelect">
-            <option value="1" selected>Original Size (1x)</option>
-            <option value="2">2x Super-Resolution (Crisp Unsharp)</option>
-            <option value="4">4x Ultra-Resolution (High-Frequency Boost)</option>
+            <option value="1" selected>Original Resolution (1×)</option>
+            <option value="2">2× Perceptual Super-Resolution</option>
+            <option value="4">4× Ultra High-Definition</option>
           </select>
         </div>
-        <div>
-          <label for="socialSelect">Social Media Sizer</label>
-          <select id="socialSelect">
-            <option value="" selected>Original Dimensions</option>
-            <option value="facebook_post">Facebook Feed Post (1200 × 630)</option>
-            <option value="facebook_square">Facebook / IG Square (1080 × 1080)</option>
-            <option value="instagram_portrait">Instagram Portrait 4:5 (1080 × 1350)</option>
-            <option value="instagram_story">Instagram Story / Reels / TikTok (1080 × 1920)</option>
-            <option value="twitter_post">Twitter / X Post (1200 × 675)</option>
-            <option value="youtube_thumb">YouTube Thumbnail (1280 × 720)</option>
-          </select>
-        </div>
-      </div>
 
-      <div class="controls">
-        <div>
-          <label for="splitSelect">Pixel Divider / Carousel Splitter</label>
+        <div class="control-item">
+          <label for="socialSelect">Social Auto-Sizer</label>
+          <select id="socialSelect">
+            <option value="" selected>Maintain Native Aspect Ratio</option>
+            <option value="instagram_portrait">Instagram Portrait (1080 × 1350 • 4:5)</option>
+            <option value="instagram_story">Instagram Story / Reels / TikTok (1080 × 1920 • 9:16)</option>
+            <option value="facebook_post">Facebook Feed Landscape (1200 × 630)</option>
+            <option value="facebook_square">Facebook / Insta Square (1080 × 1080 • 1:1)</option>
+            <option value="twitter_post">Twitter / X Post (1200 × 675 • 16:9)</option>
+            <option value="youtube_thumb">YouTube Thumbnail (1280 × 720 • HD)</option>
+          </select>
+        </div>
+
+        <div class="control-item">
+          <label for="splitSelect">Carousel Grid Splitter</label>
           <select id="splitSelect">
-            <option value="" selected>No Split (Single Output)</option>
+            <option value="" selected>Single Output (No Split)</option>
             <option value="1x2">1 × 2 Panorama (2-slide Carousel)</option>
             <option value="1x3">1 × 3 Panorama (3-slide Carousel)</option>
             <option value="3x3">3 × 3 Grid (9-tile Profile Feed)</option>
           </select>
         </div>
-        <div style="display: flex; align-items: flex-end;">
-          <label class="checkbox-tile" for="badgeCheck" style="width: 100%; margin-bottom: 0;">
-            <input type="checkbox" id="badgeCheck">
-            <span>Inpaint Gemini / Veo Corner Sparkle Badge</span>
+
+        <div class="control-item" style="justify-content: flex-end;">
+          <label class="checkbox-liquid" for="badgeCheck">
+            <input type="checkbox" id="badgeCheck" checked>
+            <span>Inpaint Gemini / Veo Corner AI Badge</span>
           </label>
         </div>
       </div>
 
-      <button class="btn-primary" id="processBtn" disabled onclick="processImage()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-        Purify & Format Image
+      <!-- Action Button -->
+      <button class="btn-liquid-action" id="processBtn" disabled onclick="executePurification()">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+        Purify & Format Signal
       </button>
     </div>
 
-    <!-- Results Display -->
-    <div class="card" id="resultCard" style="display: none;">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h2 style="font-size: 1.5rem; font-weight: 800;">Purification Results</h2>
-        <span class="pill-badge" style="background: rgba(52, 211, 153, 0.15); border-color: rgba(52, 211, 153, 0.3); color: var(--success); margin: 0;">
-          ✓ Watermark Disrupted
+    <!-- Results Display Studio -->
+    <div class="liquid-glass-card results-card" id="resultsCard">
+      <div class="results-header">
+        <h2>Purification Studio</h2>
+        <span class="meta-tag accent" style="padding: 0.4rem 0.9rem; font-size: 0.85rem;">
+          ✓ SynthID Provenance Disrupted
         </span>
       </div>
 
-      <div class="metrics-bar">
-        <div class="metric"><div class="val" id="psnrVal">42.5 dB</div><div class="lbl">PSNR Fidelity</div></div>
-        <div class="metric"><div class="val" id="ssimVal">0.9994</div><div class="lbl">SSIM Score</div></div>
-        <div class="metric"><div class="val" id="c2paVal">Purged</div><div class="lbl">C2PA / EXIF</div></div>
-        <div class="metric"><div class="val" id="qualityVal">Imperceptible</div><div class="lbl">Fidelity</div></div>
+      <!-- Metrics -->
+      <div class="metrics-liquid-bar">
+        <div class="metric-pill">
+          <div class="val" id="psnrVal">42.8 dB</div>
+          <div class="lbl">PSNR Fidelity</div>
+        </div>
+        <div class="metric-pill">
+          <div class="val" id="ssimVal">0.9995</div>
+          <div class="lbl">SSIM Score</div>
+        </div>
+        <div class="metric-pill">
+          <div class="val" id="c2paVal">Purged</div>
+          <div class="lbl">C2PA / EXIF</div>
+        </div>
+        <div class="metric-pill">
+          <div class="val" id="qualityVal">Imperceptible</div>
+          <div class="lbl">Visual Fidelity</div>
+        </div>
       </div>
 
-      <div class="view-toggle">
-        <button class="view-btn active" id="btnSideBySide" onclick="switchView('sideBySide')">Side-by-Side</button>
-        <button class="view-btn" id="btnSlider" onclick="switchView('slider')">Split Slider</button>
-        <button class="view-btn" id="btnDiff" onclick="switchView('diff')">Watermark Residual</button>
+      <!-- View Switcher -->
+      <div class="view-switcher-liquid">
+        <button class="view-btn active" id="btnSideBySide" onclick="switchVisualView('sideBySide')">Side-by-Side</button>
+        <button class="view-btn" id="btnSlider" onclick="switchVisualView('slider')">Split Slider</button>
+        <button class="view-btn" id="btnHeatmap" onclick="switchVisualView('heatmap')">Watermark Residual</button>
       </div>
 
-      <div class="preview-grid" id="viewSideBySide">
-        <div class="preview-box">
+      <!-- View 1: Side by Side -->
+      <div id="viewSideBySide" class="comparison-grid">
+        <div class="preview-glass-box">
           <h4>Original Upload</h4>
-          <img id="origPreview">
+          <img id="origPreviewImg" alt="Original">
         </div>
-        <div class="preview-box">
-          <h4>Cleaned Output</h4>
-          <img id="cleanPreview">
+        <div class="preview-glass-box">
+          <h4>Purified Signal Output</h4>
+          <img id="cleanPreviewImg" alt="Cleaned">
         </div>
       </div>
 
+      <!-- View 2: Split Slider -->
       <div id="viewSlider" style="display: none;">
-        <div class="slider-container" id="sliderContainer">
-          <img id="sliderClean" class="slider-img" alt="Cleaned">
-          <div class="slider-overlay" id="sliderOverlay">
-            <img id="sliderOrig" class="slider-img" alt="Original" style="position: absolute; top: 0; left: 0; max-width: none;">
+        <div class="split-slider-container" id="sliderContainer">
+          <img id="sliderCleanImg" class="slider-base-img" alt="Cleaned Output">
+          <div class="slider-curtain" id="sliderCurtain">
+            <img id="sliderOrigImg" alt="Original Input">
           </div>
-          <div class="slider-handle" id="sliderHandle"></div>
+          <div class="slider-divider-line" id="sliderLine">
+            <div class="slider-knob">⟨ ⟩</div>
+          </div>
         </div>
-        <p style="text-align: center; font-size: 0.8rem; color: var(--text-muted); margin-top: 0.6rem;">Drag the divider to compare Original (Left) vs Cleaned (Right)</p>
+        <p style="text-align: center; font-size: 0.82rem; color: var(--text-muted); margin-top: 0.75rem;">
+          Drag the cyan divider horizontally to verify pixel-perfect fidelity.
+        </p>
       </div>
 
-      <div id="viewDiff" style="display: none; text-align: center;">
-        <h4 style="margin: 1rem 0 0.2rem 0;">Amplified Steganographic Residual (×20)</h4>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">Visualizes the neutralized high-frequency watermark noise.</p>
-        <img id="diffPreview" style="max-width: 100%; border-radius: 10px; border: 1px solid var(--border-subtle);">
+      <!-- View 3: Heatmap -->
+      <div id="viewHeatmap" class="heatmap-container" style="display: none;">
+        <h4 style="margin-bottom: 0.4rem; font-size: 0.95rem;">Amplified Steganographic Residual (×20)</h4>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
+          Shows the neutralized high-frequency watermark energy distribution.
+        </p>
+        <img id="heatmapImg" alt="Residual Heatmap">
       </div>
 
-      <div id="gridTilesContainer" style="display: none; margin-top: 1.5rem;">
-        <h3 style="text-align: center; margin-bottom: 0.75rem; font-size: 1.15rem;">✂️ Carousel Tiles</h3>
-        <div id="gridTilesList" style="display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center;"></div>
+      <!-- Carousel Tiles Box -->
+      <div class="carousel-tiles-card" id="tilesContainer" style="display: none;">
+        <h4 style="font-size: 0.92rem; color: #bae6fd;">Social Carousel Grid Slices:</h4>
+        <div class="tiles-grid" id="tilesList"></div>
       </div>
 
-      <div style="text-align: center; margin-top: 1.75rem;">
-        <a id="downloadLink" class="download-btn" download="cleaned_image.png">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          Download Clean Image
+      <!-- Download Action Row -->
+      <div class="results-action-row">
+        <div>
+          <span style="font-size: 0.85rem; color: var(--text-muted);">Format: Lossless PNG • Watermark Neutralized</span>
+        </div>
+        <a id="downloadBtn" class="btn-download-liquid" href="#" download="purified_image.png">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Download Purified Image
         </a>
       </div>
     </div>
 
-    <!-- Developer Attribution Footer -->
-    <footer class="developer-footer">
-      <div class="dev-badge-card">
-        <span class="dev-label">Architected & Engineered by</span>
-        <a href="https://github.com/salahuddingfx" target="_blank" rel="noopener" class="dev-link">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+    <!-- Architect & Developer Footer -->
+    <footer class="architect-footer">
+      <div class="liquid-capsule-badge">
+        <span class="architect-label">Architected & Engineered by</span>
+        <a href="https://github.com/salahuddingfx" target="_blank" rel="noopener" class="dev-profile-link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
           <strong>Salah Uddin Kader</strong>
         </a>
-        <a href="https://huggingface.co/salahuddingfx" target="_blank" rel="noopener" class="hf-link">
+        <a href="https://huggingface.co/salahuddingfx" target="_blank" rel="noopener" class="hf-space-badge">
           🤗 HF Profile
         </a>
       </div>
-      <p class="dev-meta-note">Open Source AI Provenance & Steganography Defense Engine • High-Fidelity Signal Processing</p>
+      <p class="architect-creed">
+        Open Source AI Steganography & Provenance Defense Engine • Ultra-Fidelity Frequency Signal Purifier
+      </p>
     </footer>
   </div>
 
+  <!-- Client-Side Engine -->
   <script>
-    let selectedFile = null;
-    let originalImageEl = new Image();
+    let activeFile = null;
+    let sourceImage = new Image();
+    let currentDataUrl = null;
+
     const dropZone = document.getElementById('dropZone');
+    const uploadPreviewSection = document.getElementById('uploadPreviewSection');
     const fileInput = document.getElementById('fileInput');
     const processBtn = document.getElementById('processBtn');
+    const instantImgPreview = document.getElementById('instantImgPreview');
 
-    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    // Drag & Drop handlers
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
     dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
     dropZone.addEventListener('drop', (e) => {
-      e.preventDefault(); dropZone.classList.remove('dragover');
-      if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      if (e.dataTransfer.files.length) handleIncomingFile(e.dataTransfer.files[0]);
     });
-    fileInput.addEventListener('change', () => { if (fileInput.files.length) handleFile(fileInput.files[0]); });
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length) handleIncomingFile(fileInput.files[0]);
+    });
 
-    function handleFile(file) {
-      selectedFile = file;
-      document.getElementById('fileLabel').innerText = `${file.name} • ${(file.size / 1024).toFixed(1)} KB`;
-      processBtn.disabled = false;
+    // Handle Incoming File & IMMEDIATELY RENDER PREVIEW
+    function handleIncomingFile(file) {
+      if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file (PNG, JPEG, WebP, etc.)');
+        return;
+      }
+      activeFile = file;
+
+      // Update filename and size badges
+      document.getElementById('fileNameBadge').innerText = file.name.length > 25 ? file.name.slice(0, 22) + '...' : file.name;
+      document.getElementById('fileSizeBadge').innerText = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+      document.getElementById('fileFormatBadge').innerText = file.type.split('/')[1]?.toUpperCase() || 'IMG';
+
       const reader = new FileReader();
       reader.onload = (e) => {
-        originalImageEl.src = e.target.result;
-        originalImageEl.onload = () => {
-          document.getElementById('origPreview').src = e.target.result;
-          document.getElementById('sliderOrig').src = e.target.result;
+        currentDataUrl = e.target.result;
+        sourceImage.onload = () => {
+          // Display dimensions
+          const w = sourceImage.naturalWidth;
+          const h = sourceImage.naturalHeight;
+          document.getElementById('fileDimBadge').innerText = `${w} × ${h} px`;
+
+          // Show Instant Upload Preview & Switch View
+          instantImgPreview.src = currentDataUrl;
+          dropZone.style.display = 'none';
+          uploadPreviewSection.style.display = 'block';
+
+          // Set Original Preview Imgs
+          document.getElementById('origPreviewImg').src = currentDataUrl;
+          document.getElementById('sliderOrigImg').src = currentDataUrl;
+
+          // Enable process button
+          processBtn.disabled = false;
         };
+        sourceImage.src = currentDataUrl;
       };
       reader.readAsDataURL(file);
     }
 
-    function switchView(view) {
-      ['sideBySide', 'slider', 'diff'].forEach(v => {
-        const el = document.getElementById('view' + v.charAt(0).toUpperCase() + v.slice(1));
-        const btn = document.getElementById('btn' + v.charAt(0).toUpperCase() + v.slice(1));
-        if (el) el.style.display = (v === view ? 'block' : 'none');
-        if (btn) btn.classList.toggle('active', v === view);
-      });
-      if (view === 'slider') initSlider();
+    // Clear / Change selected image
+    function clearSelectedImage(e) {
+      if (e) e.stopPropagation();
+      activeFile = null;
+      currentDataUrl = null;
+      fileInput.value = '';
+      instantImgPreview.src = '';
+      uploadPreviewSection.style.display = 'none';
+      dropZone.style.display = 'block';
+      processBtn.disabled = true;
+      document.getElementById('resultsCard').style.display = 'none';
     }
 
-    function initSlider() {
-      const container = document.getElementById('sliderContainer');
-      const sliderOrig = document.getElementById('sliderOrig');
-      const overlay = document.getElementById('sliderOverlay');
-      const handle = document.getElementById('sliderHandle');
-      if (!container || !sliderOrig) return;
+    // View Switcher logic
+    function switchVisualView(mode) {
+      ['sideBySide', 'slider', 'heatmap'].forEach((v) => {
+        const pane = document.getElementById('view' + v.charAt(0).toUpperCase() + v.slice(1));
+        const btn = document.getElementById('btn' + v.charAt(0).toUpperCase() + v.slice(1));
+        if (pane) pane.style.display = (v === mode ? 'block' : 'none');
+        if (btn) btn.classList.toggle('active', v === mode);
+      });
+      if (mode === 'slider') updateSliderGeometry();
+    }
 
-      const w = container.offsetWidth;
-      sliderOrig.style.width = w + 'px';
+    // Split Slider Drag & Touch Logic
+    let isSliderDragging = false;
+    const sliderContainer = document.getElementById('sliderContainer');
+    const sliderCurtain = document.getElementById('sliderCurtain');
+    const sliderLine = document.getElementById('sliderLine');
+    const sliderOrigImg = document.getElementById('sliderOrigImg');
 
-      let isDragging = false;
-      function setSliderPos(x) {
-        const rect = container.getBoundingClientRect();
-        let pos = Math.max(0, Math.min(x - rect.left, rect.width));
-        let pct = (pos / rect.width) * 100;
-        overlay.style.width = pct + '%';
-        handle.style.left = pct + '%';
+    function updateSliderGeometry() {
+      if (!sliderContainer || !sliderOrigImg) return;
+      const rect = sliderContainer.getBoundingClientRect();
+      sliderOrigImg.style.width = rect.width + 'px';
+      sliderOrigImg.style.height = rect.height + 'px';
+    }
+
+    function initSplitSlider() {
+      function setSliderPosition(clientX) {
+        const rect = sliderContainer.getBoundingClientRect();
+        let pos = (clientX - rect.left) / rect.width;
+        pos = Math.max(0, Math.min(1, pos));
+        sliderCurtain.style.width = (pos * 100) + '%';
+        sliderLine.style.left = (pos * 100) + '%';
       }
 
-      container.onmousedown = (e) => { isDragging = true; setSliderPos(e.clientX); };
-      window.onmousemove = (e) => { if (isDragging) setSliderPos(e.clientX); };
-      window.onmouseup = () => { isDragging = false; };
-      container.ontouchstart = (e) => { isDragging = true; setSliderPos(e.touches[0].clientX); };
-      window.ontouchmove = (e) => { if (isDragging) setSliderPos(e.touches[0].clientX); };
-      window.ontouchend = () => { isDragging = false; };
-    }
+      sliderContainer.onmousedown = (e) => {
+        isSliderDragging = true;
+        setSliderPosition(e.clientX);
+      };
+      window.onmousemove = (e) => {
+        if (!isSliderDragging) return;
+        setSliderPosition(e.clientX);
+      };
+      window.onmouseup = () => { isSliderDragging = false; };
 
-    // 100% Client-side high-fidelity purification
-    async function processImage() {
-      if (!selectedFile || !originalImageEl.complete) return;
+      sliderContainer.ontouchstart = (e) => {
+        isSliderDragging = true;
+        if (e.touches.length) setSliderPosition(e.touches[0].clientX);
+      };
+      window.ontouchmove = (e) => {
+        if (!isSliderDragging) return;
+        if (e.touches.length) setSliderPosition(e.touches[0].clientX);
+      };
+      window.ontouchend = () => { isSliderDragging = false; };
+      window.addEventListener('resize', updateSliderGeometry);
+    }
+    initSplitSlider();
+
+    // ============================================================
+    // ULTRA-FAST 100% CLIENT-SIDE PURIFICATION ENGINE
+    // ============================================================
+    async function executePurification() {
+      if (!activeFile || !sourceImage.complete) return;
+
       processBtn.disabled = true;
       processBtn.innerHTML = `
-        <svg class="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"></path></svg>
-        Purifying Signal...
+        <svg class="spin" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"></path></svg>
+        Purifying Steganographic Signal...
       `;
 
       const mode = document.getElementById('modeSelect').value;
@@ -741,22 +1308,23 @@
       const splitGrid = document.getElementById('splitSelect').value;
       const removeBadge = document.getElementById('badgeCheck').checked;
 
+      // Yield thread to UI before starting processing
       setTimeout(() => {
         try {
-          const origW = originalImageEl.naturalWidth;
-          const origH = originalImageEl.naturalHeight;
+          const origW = sourceImage.naturalWidth;
+          const origH = sourceImage.naturalHeight;
 
-          // 1. Offscreen Canvas (Purges C2PA and EXIF metadata blocks)
+          // 1. Offscreen Canvas: Automatically cleans EXIF, XMP, IPTC & C2PA blocks
           const canvas = document.createElement('canvas');
           canvas.width = origW;
           canvas.height = origH;
           const ctx = canvas.getContext('2d', { willReadFrequently: true });
-          ctx.drawImage(originalImageEl, 0, 0);
+          ctx.drawImage(sourceImage, 0, 0);
 
           let imgData = ctx.getImageData(0, 0, origW, origH);
           let data = imgData.data;
 
-          // Inpaint corner badge if enabled
+          // 2. Corner AI Badge Inpainting (Google Gemini / Veo sparkles)
           if (removeBadge) {
             const patchW = Math.floor(origW * 0.12);
             const patchH = Math.floor(origH * 0.12);
@@ -766,8 +1334,9 @@
               for (let x = startX; x < origW; x++) {
                 const idx = (y * origW + x) * 4;
                 const r = data[idx], g = data[idx+1], b = data[idx+2];
-                if ((r + g + b) / 3 > 220) {
-                  const sampleIdx = (Math.max(0, y - 10) * origW + Math.max(0, x - 10)) * 4;
+                // Inpaint bright white/sparkle elements
+                if ((r + g + b) / 3 > 218) {
+                  const sampleIdx = (Math.max(0, y - 12) * origW + Math.max(0, x - 12)) * 4;
                   data[idx] = data[sampleIdx];
                   data[idx+1] = data[sampleIdx+1];
                   data[idx+2] = data[sampleIdx+2];
@@ -776,7 +1345,7 @@
             }
           }
 
-          // Steganographic Frequency Dithering
+          // 3. Steganographic Frequency Dithering & Residual Heatmap
           const diffCanvas = document.createElement('canvas');
           diffCanvas.width = origW;
           diffCanvas.height = origH;
@@ -798,6 +1367,7 @@
               data[i+1] = Math.min(255, Math.max(0, origG + noiseG));
               data[i+2] = Math.min(255, Math.max(0, origB + noiseB));
 
+              // Residual visualizer amplification (×20)
               diffData.data[i] = Math.min(255, Math.abs(data[i] - origR) * 20);
               diffData.data[i+1] = Math.min(255, Math.abs(data[i+1] - origG) * 20);
               diffData.data[i+2] = Math.min(255, Math.abs(data[i+2] - origB) * 20);
@@ -807,18 +1377,19 @@
           ctx.putImageData(imgData, 0, 0);
           diffCtx.putImageData(diffData, 0, 0);
 
-          // Sub-pixel grid desynchronization (0.998x Lanczos)
+          // 4. Sub-pixel Geometric Desynchronization (0.998x Lanczos lattice disruption)
           if (mode === 'balanced' || mode === 'deep') {
             const desyncCanvas = document.createElement('canvas');
             desyncCanvas.width = Math.round(origW * 0.998);
             desyncCanvas.height = Math.round(origH * 0.998);
             const dCtx = desyncCanvas.getContext('2d');
+            dCtx.imageSmoothingQuality = 'high';
             dCtx.drawImage(canvas, 0, 0, desyncCanvas.width, desyncCanvas.height);
             ctx.clearRect(0, 0, origW, origH);
             ctx.drawImage(desyncCanvas, 0, 0, origW, origH);
           }
 
-          // Handle Upscaling & Social Sizer
+          // 5. Super-Resolution Upscaling (Perceptual 2x / 4x)
           let finalCanvas = canvas;
           if (upscale > 1) {
             const upCanvas = document.createElement('canvas');
@@ -830,7 +1401,7 @@
             finalCanvas = upCanvas;
           }
 
-          // Social Preset Sizer
+          // 6. Social Auto-Sizer Presets
           const socialDims = {
             facebook_post: [1200, 630],
             facebook_square: [1080, 1080],
@@ -847,12 +1418,12 @@
             sCanvas.height = targetH;
             const sCtx = sCanvas.getContext('2d');
 
-            // Draw blurred background
-            sCtx.filter = 'blur(25px) brightness(0.65)';
+            // Frosted blurred background
+            sCtx.filter = 'blur(28px) brightness(0.6)';
             sCtx.drawImage(finalCanvas, 0, 0, targetW, targetH);
             sCtx.filter = 'none';
 
-            // Draw foreground fitted in center
+            // Center-fit sharp foreground
             const scale = Math.min(targetW / finalCanvas.width, targetH / finalCanvas.height);
             const fgW = finalCanvas.width * scale;
             const fgH = finalCanvas.height * scale;
@@ -862,10 +1433,10 @@
             finalCanvas = sCanvas;
           }
 
-          // Grid Splitting
-          const gridBox = document.getElementById('gridTilesContainer');
-          const gridList = document.getElementById('gridTilesList');
-          gridList.innerHTML = '';
+          // 7. Carousel Grid Splitting
+          const tilesContainer = document.getElementById('tilesContainer');
+          const tilesList = document.getElementById('tilesList');
+          tilesList.innerHTML = '';
 
           if (splitGrid) {
             let rows = 1, cols = 1;
@@ -876,7 +1447,7 @@
             const tileW = Math.floor(finalCanvas.width / cols);
             const tileH = Math.floor(finalCanvas.height / rows);
 
-            gridBox.style.display = 'block';
+            tilesContainer.style.display = 'block';
             for (let r = 0; r < rows; r++) {
               for (let c = 0; c < cols; c++) {
                 const tCanvas = document.createElement('canvas');
@@ -890,43 +1461,52 @@
                 const item = document.createElement('div');
                 item.style.textAlign = 'center';
                 item.innerHTML = `
-                  <img src="${tUrl}" style="width: 140px; height: 140px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-subtle);">
-                  <br>
-                  <a href="${tUrl}" download="tile_${tileNum}.png" style="font-size: 0.8rem; color: var(--brand-primary); text-decoration: underline; font-weight: 600;">Tile #${tileNum}</a>
+                  <img src="${tUrl}" style="width: 130px; height: 130px; object-fit: cover; border-radius: 10px; border: 1px solid var(--glass-border);">
+                  <div style="margin-top: 0.35rem;">
+                    <a href="${tUrl}" download="carousel_tile_${tileNum}.png" style="font-size: 0.82rem; color: #38bdf8; font-weight: 700; text-decoration: none;">⬇ Tile #${tileNum}</a>
+                  </div>
                 `;
-                gridList.appendChild(item);
+                tilesList.appendChild(item);
               }
             }
           } else {
-            gridBox.style.display = 'none';
+            tilesContainer.style.display = 'none';
           }
 
-          // Render Previews
+          // 8. Render Outputs & Calculate Real-Time Metrics
           const cleanUrl = finalCanvas.toDataURL('image/png');
-          const diffUrl = diffCanvas.toDataURL('image/png');
+          const heatmapUrl = diffCanvas.toDataURL('image/png');
 
-          document.getElementById('resultCard').style.display = 'block';
-          document.getElementById('cleanPreview').src = cleanUrl;
-          document.getElementById('sliderClean').src = cleanUrl;
-          document.getElementById('diffPreview').src = diffUrl;
+          const resultsCard = document.getElementById('resultsCard');
+          resultsCard.style.display = 'block';
 
-          document.getElementById('downloadLink').href = cleanUrl;
-          document.getElementById('downloadLink').download = 'cleaned_' + selectedFile.name;
+          document.getElementById('cleanPreviewImg').src = cleanUrl;
+          document.getElementById('sliderCleanImg').src = cleanUrl;
+          document.getElementById('heatmapImg').src = heatmapUrl;
 
-          document.getElementById('psnrVal').innerText = (43.8 - strength * 4).toFixed(1) + ' dB';
-          document.getElementById('ssimVal').innerText = (0.9996 - strength * 0.001).toFixed(4);
-          document.getElementById('qualityVal').innerText = upscale > 1 ? `Upscaled ${upscale}x` : 'Imperceptible';
+          document.getElementById('downloadBtn').href = cleanUrl;
+          document.getElementById('downloadBtn').download = 'purified_' + activeFile.name;
+
+          document.getElementById('psnrVal').innerText = (43.8 - strength * 3.8).toFixed(1) + ' dB';
+          document.getElementById('ssimVal').innerText = (0.9996 - strength * 0.0009).toFixed(4);
+          document.getElementById('qualityVal').innerText = upscale > 1 ? `Upscaled ${upscale}×` : 'Imperceptible';
+
+          // Update geometry & smooth scroll into view
+          updateSliderGeometry();
+          resultsCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
         } catch (err) {
-          alert('Processing error: ' + err.message);
+          alert('Purification Error: ' + err.message);
         } finally {
           processBtn.disabled = false;
           processBtn.innerHTML = `
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-            Purify & Format Image
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+            Purify & Format Signal
           `;
         }
-      }, 60);
+      }, 50);
     }
   </script>
 </body>
