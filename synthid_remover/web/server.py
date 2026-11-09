@@ -300,6 +300,9 @@ HTML_PAGE = """<!DOCTYPE html>
       <div id="gridTilesContainer" style="display: none; margin-top: 1.5rem;">
         <h3 style="text-align: center; margin-bottom: 0.75rem;">✂️ Pixel Divider / Carousel Tiles</h3>
         <div id="gridTilesList" style="display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center;"></div>
+        <div style="text-align: center; margin-top: 0.75rem;">
+          <a id="downloadAllTilesBtn" class="download-btn" style="background: var(--brand); font-size: 0.9rem; padding: 0.5rem 1.2rem; cursor: pointer;">Download All Tiles (.ZIP)</a>
+        </div>
       </div>
 
       <div style="text-align: center; margin-top: 1.5rem;">
@@ -404,6 +407,7 @@ HTML_PAGE = """<!DOCTYPE html>
           // Render grid tiles if generated
           const gridBox = document.getElementById('gridTilesContainer');
           const gridList = document.getElementById('gridTilesList');
+          const zipBtn = document.getElementById('downloadAllTilesBtn');
           gridList.innerHTML = '';
           if (data.tiles && data.tiles.length > 0) {
             gridBox.style.display = 'block';
@@ -417,6 +421,13 @@ HTML_PAGE = """<!DOCTYPE html>
               `;
               gridList.appendChild(item);
             });
+            if (data.zip_data_url) {
+              zipBtn.href = data.zip_data_url;
+              zipBtn.download = 'carousel_tiles.zip';
+              zipBtn.style.display = 'inline-block';
+            } else {
+              zipBtn.style.display = 'none';
+            }
           } else {
             gridBox.style.display = 'none';
           }
@@ -571,7 +582,9 @@ class SynthIDWebHandler(BaseHTTPRequestHandler):
 
             # Grid Tiles
             tiles_payload = []
+            zip_data_url = None
             if split_grid:
+                import zipfile
                 from synthid_remover.filters.resizer import split_image_grid
                 with Image.open(output_file) as out_img:
                     if split_grid == "1x2":
@@ -583,20 +596,28 @@ class SynthIDWebHandler(BaseHTTPRequestHandler):
                     else:
                         tile_imgs = []
 
-                    for t_idx, t_img in enumerate(tile_imgs):
-                        buf = io.BytesIO()
-                        t_img.save(buf, format="PNG")
-                        t_b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
-                        tiles_payload.append({
-                            "tile": t_idx + 1,
-                            "data_url": f"data:image/png;base64,{t_b64}"
-                        })
+                    zip_buf = io.BytesIO()
+                    with zipfile.ZipFile(zip_buf, "w", zipfile.ZIP_DEFLATED) as zf:
+                        for t_idx, t_img in enumerate(tile_imgs):
+                            buf = io.BytesIO()
+                            t_img.save(buf, format="PNG")
+                            img_bytes = buf.getvalue()
+                            t_b64 = base64.b64encode(img_bytes).decode("utf-8")
+                            tiles_payload.append({
+                                "tile": t_idx + 1,
+                                "data_url": f"data:image/png;base64,{t_b64}"
+                            })
+                            zf.writestr(f"carousel_tile_{t_idx+1}.png", img_bytes)
+
+                    zip_b64 = base64.b64encode(zip_buf.getvalue()).decode("utf-8")
+                    zip_data_url = f"data:application/zip;base64,{zip_b64}"
 
             self.send_json({
                 "success": True,
                 "cleaned_data_url": data_url,
                 "diff_data_url": diff_data_url,
                 "tiles": tiles_payload,
+                "zip_data_url": zip_data_url,
                 "metrics": res.get("metrics", {}),
                 "mode": mode,
             })
@@ -608,7 +629,9 @@ class SynthIDWebHandler(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps(data).encode("utf-8"))
 
 
-def start_server(host: str = "127.0.0.1", port: int = 8080):
+def start_server(host: str = "0.0.0.0", port: int = None):
+    if port is None:
+        port = int(os.environ.get("PORT", 8080))
     server = HTTPServer((host, port), SynthIDWebHandler)
     print(f"🚀 SynthID Remover Web UI running at http://{host}:{port}")
     try:
