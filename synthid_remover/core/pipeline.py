@@ -123,3 +123,4 @@ class SynthIDPurifier:
             "dimensions": f"{final_pil.width}x{final_pil.height}",
             "metrics": fidelity,
         }
+

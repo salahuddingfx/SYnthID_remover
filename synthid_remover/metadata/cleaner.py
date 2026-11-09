@@ -99,3 +99,4 @@ def clean_video_c2pa(input_path: str, output_path: str) -> dict:
         "boxes_modified": boxes_modified,
         "file_size": len(data),
     }
+

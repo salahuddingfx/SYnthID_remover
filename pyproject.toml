@@ -17,3 +17,4 @@ dependencies = [
 
 [project.scripts]
 synthid-remover = "synthid_remover.cli.main:main"
+

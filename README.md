@@ -134,3 +134,4 @@ Run the automated test suite:
 | `balanced` | 42.55 dB | 0.9994 | Imperceptible | DCT mid/high-frequency dither + grid desync + bilateral |
 | `deep` | 40.27 dB | 0.9990 | Near-Lossless | Global DCT + block DCT + multi-scale spatial jitter |
 | `metadata_only`| $\infty$ | 1.0000 | Bit-Exact | C2PA & EXIF/XMP strip only |
+

@@ -122,3 +122,4 @@ def purify_dct_global(img_arr: np.ndarray, strength: float = 0.25) -> np.ndarray
     if orig_dtype == np.uint8:
         return np.round(out).astype(np.uint8)
     return out
+

@@ -89,3 +89,4 @@ if __name__ == "__main__":
     test_purification_modes()
     test_video_c2pa_atom_scrubber()
     print("\n🎉 All tests passed successfully!")
+

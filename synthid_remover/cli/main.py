@@ -19,9 +19,16 @@ def build_parser():
     parser = argparse.ArgumentParser(
         prog="synthid-remover",
         description="SynthID & AI Watermark Remover: Strips C2PA, EXIF, and invisible diffusion steganographic watermarks while preserving visual fidelity.",
+        epilog="Examples:\n"
+               "  ./synthid-remover -i input.png -o clean.png\n"
+               "  ./synthid-remover -i ./images_dir/ -o ./cleaned_dir/\n"
+               "  ./synthid-remover -i photo.jpg -m deep -s 0.45\n"
+               "  ./synthid-remover --inspect image.png\n"
+               "  ./synthid-remover --serve --port 8080\n",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
-        "-i", "--input", required=True, help="Path to input image/video file or directory."
+        "-i", "--input", help="Path to input image/video file or directory."
     )
     parser.add_argument(
         "-o", "--output", help="Path to output file or directory (defaults to cleaned_<filename>)."
@@ -47,6 +54,26 @@ def build_parser():
         "-f", "--format",
         choices=["png", "jpg", "jpeg", "webp"],
         help="Force output image format.",
+    )
+    parser.add_argument(
+        "--diff-map",
+        help="Save an amplified visual difference heatmap comparing original vs purified image.",
+    )
+    parser.add_argument(
+        "--inspect",
+        metavar="FILE",
+        help="Scan and display embedded C2PA manifests, EXIF tags, and AI model signatures.",
+    )
+    parser.add_argument(
+        "--serve",
+        action="store_true",
+        help="Launch the local interactive Web UI (drag-and-drop, comparison slider, live metrics).",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=8080,
+        help="Port for the local Web UI (default: 8080).",
     )
     parser.add_argument(
         "--quiet",
@@ -92,6 +119,36 @@ def main():
     parser = build_parser()
     args = parser.parse_args()
 
+    # Launch Web UI
+    if args.serve:
+        from synthid_remover.web.server import start_server
+        start_server(port=args.port)
+        return
+
+    # Inspect image metadata / C2PA
+    if args.inspect:
+        from synthid_remover.core.analyzer import inspect_image_metadata
+        target = os.path.abspath(args.inspect)
+        if not os.path.exists(target):
+            print(f"Error: Target file '{args.inspect}' does not exist.", file=sys.stderr)
+            sys.exit(1)
+        data = inspect_image_metadata(target)
+        print(f"🔍 Inspection Report for: {target}")
+        print(f"   Format: {data['format']} | Mode: {data['color_mode']} | Dimensions: {data['dimensions']}")
+        print(f"   C2PA Credentials Found: {'⚠️ YES' if data['has_c2pa'] else '✓ None detected'}")
+        print(f"   AI Generator Signatures: {', '.join(data['ai_signature_markers']) if data['ai_signature_markers'] else 'None'}")
+        print(f"   Metadata Keys: {data['metadata_keys']}")
+        print(f"   EXIF Tags: {data['exif_tags_count']}")
+        return
+
+    # If no input provided, print friendly help
+    if not args.input:
+        parser.print_help()
+        print("\n💡 Quick Start:")
+        print("  Run with an input file:  ./synthid-remover -i your_image.png")
+        print("  Launch local Web UI:     ./synthid-remover --serve\n")
+        sys.exit(0)
+
     input_path = os.path.abspath(args.input)
     if not os.path.exists(input_path):
         print(f"Error: Input path '{args.input}' does not exist.", file=sys.stderr)
@@ -112,6 +169,12 @@ def main():
             out_path = str(p.parent / f"cleaned_{p.stem}{ext}")
 
         process_single_file(input_path, out_path, purifier, args.format, args.quiet)
+
+        if args.diff_map:
+            from synthid_remover.core.analyzer import generate_difference_heatmap
+            diff_res = generate_difference_heatmap(input_path, out_path, os.path.abspath(args.diff_map))
+            if not args.quiet:
+                print(f"   ✓ Difference heatmap saved to: {diff_res['diff_path']} (mean delta: {diff_res['mean_pixel_delta']})")
 
     elif os.path.isdir(input_path):
         out_dir = os.path.abspath(args.output) if args.output else os.path.join(input_path, "cleaned")
@@ -139,3 +202,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

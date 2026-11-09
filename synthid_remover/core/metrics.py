@@ -60,3 +60,4 @@ def evaluate_fidelity(orig: np.ndarray, cleaned: np.ndarray) -> dict:
         "ssim": round(ssim, 4),
         "quality_preservation": "Excellent (Imperceptible)" if psnr > 40 else "Good" if psnr > 34 else "Moderate",
     }
+
