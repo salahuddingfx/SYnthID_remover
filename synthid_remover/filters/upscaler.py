@@ -42,3 +42,4 @@ def upscale_image(img: Image.Image, scale: int = 2, enhance_details: bool = True
     result = enhancer.enhance(1.04)
 
     return result
+

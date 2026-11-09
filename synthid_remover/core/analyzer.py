@@ -58,6 +58,9 @@ def generate_difference_heatmap(orig_path: str, cleaned_path: str, output_diff_p
     visualizing the steganographic noise perturbation.
     """
     with Image.open(orig_path) as img1, Image.open(cleaned_path) as img2:
+        # Match dimensions if upscaled or resized
+        if img1.size != img2.size:
+            img2 = img2.resize(img1.size, Image.Resampling.LANCZOS)
         arr1 = np.array(img1.convert("RGB"), dtype=np.float32)
         arr2 = np.array(img2.convert("RGB"), dtype=np.float32)
 

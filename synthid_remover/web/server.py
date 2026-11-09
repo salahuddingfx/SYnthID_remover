@@ -229,9 +229,22 @@ HTML_PAGE = """<!DOCTYPE html>
         </div>
       </div>
 
-      <div style="margin-top: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-        <input type="checkbox" id="badgeCheck" style="width: 18px; height: 18px; cursor: pointer;">
-        <label for="badgeCheck" style="cursor: pointer; text-transform: none; font-size: 0.95rem; color: var(--text);">Remove Visible Badge (Inpaint Gemini/Veo corner sparkle)</label>
+      <div class="controls" style="margin-top: 1rem;">
+        <div>
+          <label for="splitSelect">Pixel Divider / Carousel Splitter</label>
+          <select id="splitSelect">
+            <option value="" selected>No Split (Single Image)</option>
+            <option value="1x2">1x2 Panorama (2-slide Carousel)</option>
+            <option value="1x3">1x3 Panorama (3-slide Carousel)</option>
+            <option value="3x3">3x3 Grid (9-tile Profile Feed)</option>
+          </select>
+        </div>
+        <div style="display: flex; align-items: flex-end; padding-bottom: 0.25rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <input type="checkbox" id="badgeCheck" style="width: 18px; height: 18px; cursor: pointer;">
+            <label for="badgeCheck" style="cursor: pointer; text-transform: none; font-size: 0.95rem; color: var(--text);">Remove Visible Badge (Inpaint Gemini sparkle)</label>
+          </div>
+        </div>
       </div>
 
       <button class="btn" id="processBtn" disabled onclick="processImage()">Purify Image</button>
@@ -282,6 +295,11 @@ HTML_PAGE = """<!DOCTYPE html>
         <h4 style="margin-top: 1rem;">Amplified Steganographic Perturbation Residual (×15)</h4>
         <p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem;">Visualizes the neutralized SynthID carrier frequency noise.</p>
         <img id="diffPreview" style="max-width: 100%; border-radius: 8px; border: 1px solid var(--border);">
+      </div>
+
+      <div id="gridTilesContainer" style="display: none; margin-top: 1.5rem;">
+        <h3 style="text-align: center; margin-bottom: 0.75rem;">✂️ Pixel Divider / Carousel Tiles</h3>
+        <div id="gridTilesList" style="display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center;"></div>
       </div>
 
       <div style="text-align: center; margin-top: 1.5rem;">
@@ -365,6 +383,7 @@ HTML_PAGE = """<!DOCTYPE html>
       formData.append('remove_badge', document.getElementById('badgeCheck').checked ? 'true' : 'false');
       formData.append('upscale', document.getElementById('upscaleSelect').value);
       formData.append('social_preset', document.getElementById('socialSelect').value);
+      formData.append('split_grid', document.getElementById('splitSelect').value);
 
       try {
         const res = await fetch('/api/purify', { method: 'POST', body: formData });
@@ -381,6 +400,26 @@ HTML_PAGE = """<!DOCTYPE html>
           document.getElementById('psnrVal').innerText = data.metrics.psnr_db + ' dB';
           document.getElementById('ssimVal').innerText = data.metrics.ssim;
           document.getElementById('qualityVal').innerText = data.metrics.quality_preservation;
+
+          // Render grid tiles if generated
+          const gridBox = document.getElementById('gridTilesContainer');
+          const gridList = document.getElementById('gridTilesList');
+          gridList.innerHTML = '';
+          if (data.tiles && data.tiles.length > 0) {
+            gridBox.style.display = 'block';
+            data.tiles.forEach((t, i) => {
+              const item = document.createElement('div');
+              item.style.textAlign = 'center';
+              item.innerHTML = `
+                <img src="${t.data_url}" style="width: 140px; height: 140px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border);">
+                <br>
+                <a href="${t.data_url}" download="tile_${i+1}.png" style="font-size: 0.8rem; color: var(--brand); text-decoration: underline; font-weight: 600;">Tile #${i+1}</a>
+              `;
+              gridList.appendChild(item);
+            });
+          } else {
+            gridBox.style.display = 'none';
+          }
         } else {
           alert('Error: ' + data.error);
         }
@@ -410,115 +449,157 @@ class SynthIDWebHandler(BaseHTTPRequestHandler):
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.end_headers()
             self.wfile.write(HTML_PAGE.encode("utf-8"))
+        elif parsed.path == "/favicon.ico":
+            self.send_response(204)
+            self.end_headers()
         else:
             self.send_response(404)
             self.end_headers()
 
     def do_POST(self):
-        parsed = urlparse(self.path)
-        if parsed.path == "/api/purify":
-            content_type = self.headers.get("Content-Type", "")
-            if not content_type.startswith("multipart/form-data"):
-                self.send_json({"success": False, "error": "Invalid Content-Type"}, 400)
-                return
+        try:
+            parsed = urlparse(self.path)
+            if parsed.path == "/api/purify":
+                self.handle_purify()
+            else:
+                self.send_response(404)
+                self.end_headers()
+        except Exception as err:
+            import traceback
+            traceback.print_exc()
+            self.send_json({"success": False, "error": str(err)}, 500)
 
-            # Read multipart body
-            content_length = int(self.headers.get("Content-Length", 0))
-            body = self.rfile.read(content_length)
-            boundary = content_type.split("boundary=")[-1].strip().encode()
+    def handle_purify(self):
+        content_type = self.headers.get("Content-Type", "")
+        if not content_type.startswith("multipart/form-data"):
+            self.send_json({"success": False, "error": "Invalid Content-Type"}, 400)
+            return
 
-            # Parse multipart parts
-            parts = body.split(b"--" + boundary)
-            file_bytes = None
-            mode = "balanced"
-            strength = 0.35
-            remove_badge = False
-            upscale = 1
-            social_preset = None
+        # Read multipart body
+        content_length = int(self.headers.get("Content-Length", 0))
+        body = self.rfile.read(content_length)
+        boundary = content_type.split("boundary=")[-1].strip().encode()
 
-            for part in parts:
-                if b'name="image"' in part:
-                    header_end = part.find(b"\r\n\r\n")
-                    if header_end != -1:
-                        file_bytes = part[header_end + 4 :].rstrip(b"\r\n")
-                elif b'name="mode"' in part:
-                    header_end = part.find(b"\r\n\r\n")
-                    if header_end != -1:
-                        mode = part[header_end + 4 :].rstrip(b"\r\n").decode("utf-8", errors="ignore")
-                elif b'name="strength"' in part:
-                    header_end = part.find(b"\r\n\r\n")
-                    if header_end != -1:
-                        try:
-                            strength = float(part[header_end + 4 :].rstrip(b"\r\n"))
-                        except ValueError:
-                            pass
-                elif b'name="remove_badge"' in part:
-                    header_end = part.find(b"\r\n\r\n")
-                    if header_end != -1:
-                        val = part[header_end + 4 :].rstrip(b"\r\n").decode("utf-8", errors="ignore")
-                        remove_badge = (val == "true")
-                elif b'name="upscale"' in part:
-                    header_end = part.find(b"\r\n\r\n")
-                    if header_end != -1:
-                        try:
-                            upscale = int(part[header_end + 4 :].rstrip(b"\r\n"))
-                        except ValueError:
-                            pass
-                elif b'name="social_preset"' in part:
-                    header_end = part.find(b"\r\n\r\n")
-                    if header_end != -1:
-                        val = part[header_end + 4 :].rstrip(b"\r\n").decode("utf-8", errors="ignore").strip()
-                        if val:
-                            social_preset = val
+        # Parse multipart parts
+        parts = body.split(b"--" + boundary)
+        file_bytes = None
+        mode = "balanced"
+        strength = 0.35
+        remove_badge = False
+        upscale = 1
+        social_preset = None
+        split_grid = None
 
-            if not file_bytes:
-                self.send_json({"success": False, "error": "No image uploaded"}, 400)
-                return
-
-            # Process image in temp directory
-            with tempfile.TemporaryDirectory() as tmpdir:
-                input_file = os.path.join(tmpdir, "input.png")
-                output_file = os.path.join(tmpdir, "output.png")
-                diff_file = os.path.join(tmpdir, "diff.png")
-
-                with open(input_file, "wb") as f:
-                    f.write(file_bytes)
-
-                purifier = SynthIDPurifier(
-                    mode=mode,
-                    strength=strength,
-                    remove_badge=remove_badge,
-                    upscale=upscale,
-                    social_preset=social_preset,
-                )
-                res = purifier.process_image(input_file, output_file, output_format="PNG")
-
-                with open(output_file, "rb") as f:
-                    cleaned_bytes = f.read()
-
-                b64_img = base64.b64encode(cleaned_bytes).decode("utf-8")
-                data_url = f"data:image/png;base64,{b64_img}"
-
-                diff_data_url = None
-                if mode != "metadata_only":
+        for part in parts:
+            if b'name="image"' in part:
+                header_end = part.find(b"\r\n\r\n")
+                if header_end != -1:
+                    file_bytes = part[header_end + 4 :].rstrip(b"\r\n")
+            elif b'name="mode"' in part:
+                header_end = part.find(b"\r\n\r\n")
+                if header_end != -1:
+                    mode = part[header_end + 4 :].rstrip(b"\r\n").decode("utf-8", errors="ignore")
+            elif b'name="strength"' in part:
+                header_end = part.find(b"\r\n\r\n")
+                if header_end != -1:
                     try:
-                        generate_difference_heatmap(input_file, output_file, diff_file, amplify=15.0)
-                        with open(diff_file, "rb") as df:
-                            diff_b64 = base64.b64encode(df.read()).decode("utf-8")
-                            diff_data_url = f"data:image/png;base64,{diff_b64}"
-                    except Exception:
+                        strength = float(part[header_end + 4 :].rstrip(b"\r\n"))
+                    except ValueError:
                         pass
+            elif b'name="remove_badge"' in part:
+                header_end = part.find(b"\r\n\r\n")
+                if header_end != -1:
+                    val = part[header_end + 4 :].rstrip(b"\r\n").decode("utf-8", errors="ignore")
+                    remove_badge = (val == "true")
+            elif b'name="upscale"' in part:
+                header_end = part.find(b"\r\n\r\n")
+                if header_end != -1:
+                    try:
+                        upscale = int(part[header_end + 4 :].rstrip(b"\r\n"))
+                    except ValueError:
+                        pass
+            elif b'name="social_preset"' in part:
+                header_end = part.find(b"\r\n\r\n")
+                if header_end != -1:
+                    val = part[header_end + 4 :].rstrip(b"\r\n").decode("utf-8", errors="ignore").strip()
+                    if val:
+                        social_preset = val
+            elif b'name="split_grid"' in part:
+                header_end = part.find(b"\r\n\r\n")
+                if header_end != -1:
+                    val = part[header_end + 4 :].rstrip(b"\r\n").decode("utf-8", errors="ignore").strip()
+                    if val:
+                        split_grid = val
 
-                self.send_json({
-                    "success": True,
-                    "cleaned_data_url": data_url,
-                    "diff_data_url": diff_data_url,
-                    "metrics": res.get("metrics", {}),
-                    "mode": mode,
-                })
-        else:
-            self.send_response(404)
-            self.end_headers()
+        if not file_bytes:
+            self.send_json({"success": False, "error": "No image uploaded"}, 400)
+            return
+
+        # Process image in temp directory
+        with tempfile.TemporaryDirectory() as tmpdir:
+            input_file = os.path.join(tmpdir, "input.png")
+            output_file = os.path.join(tmpdir, "output.png")
+            diff_file = os.path.join(tmpdir, "diff.png")
+
+            with open(input_file, "wb") as f:
+                f.write(file_bytes)
+
+            purifier = SynthIDPurifier(
+                mode=mode,
+                strength=strength,
+                remove_badge=remove_badge,
+                upscale=upscale,
+                social_preset=social_preset,
+            )
+            res = purifier.process_image(input_file, output_file, output_format="PNG")
+
+            with open(output_file, "rb") as f:
+                cleaned_bytes = f.read()
+
+            b64_img = base64.b64encode(cleaned_bytes).decode("utf-8")
+            data_url = f"data:image/png;base64,{b64_img}"
+
+            diff_data_url = None
+            if mode != "metadata_only":
+                try:
+                    generate_difference_heatmap(input_file, output_file, diff_file, amplify=15.0)
+                    with open(diff_file, "rb") as df:
+                        diff_b64 = base64.b64encode(df.read()).decode("utf-8")
+                        diff_data_url = f"data:image/png;base64,{diff_b64}"
+                except Exception:
+                    pass
+
+            # Grid Tiles
+            tiles_payload = []
+            if split_grid:
+                from synthid_remover.filters.resizer import split_image_grid
+                with Image.open(output_file) as out_img:
+                    if split_grid == "1x2":
+                        tile_imgs = split_image_grid(out_img, rows=1, cols=2)
+                    elif split_grid == "1x3":
+                        tile_imgs = split_image_grid(out_img, rows=1, cols=3)
+                    elif split_grid == "3x3":
+                        tile_imgs = split_image_grid(out_img, rows=3, cols=3)
+                    else:
+                        tile_imgs = []
+
+                    for t_idx, t_img in enumerate(tile_imgs):
+                        buf = io.BytesIO()
+                        t_img.save(buf, format="PNG")
+                        t_b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+                        tiles_payload.append({
+                            "tile": t_idx + 1,
+                            "data_url": f"data:image/png;base64,{t_b64}"
+                        })
+
+            self.send_json({
+                "success": True,
+                "cleaned_data_url": data_url,
+                "diff_data_url": diff_data_url,
+                "tiles": tiles_payload,
+                "metrics": res.get("metrics", {}),
+                "mode": mode,
+            })
 
     def send_json(self, data: dict, status: int = 200):
         self.send_response(status)

@@ -107,3 +107,4 @@ def split_image_grid(img: Image.Image, rows: int = 1, cols: int = 3) -> List[Ima
             tiles.append(tile)
 
     return tiles
+

@@ -50,14 +50,30 @@ def calculate_ssim(img1: np.ndarray, img2: np.ndarray, k1: float = 0.01, k2: flo
 
 def evaluate_fidelity(orig: np.ndarray, cleaned: np.ndarray) -> dict:
     """Evaluates comprehensive fidelity metrics."""
-    mse = calculate_mse(orig, cleaned)
-    psnr = calculate_psnr(orig, cleaned)
-    ssim = calculate_ssim(orig, cleaned)
+    # If dimensions changed (due to upscaling or social preset resizing),
+    # downsample cleaned to orig size to compute fidelity
+    if orig.shape != cleaned.shape:
+        from PIL import Image
+        h, w = orig.shape[:2]
+        temp = Image.fromarray(cleaned).resize((w, h), Image.Resampling.LANCZOS)
+        cleaned_eval = np.array(temp)
+        res_note = f"Scaled to {cleaned.shape[1]}x{cleaned.shape[0]}"
+    else:
+        cleaned_eval = cleaned
+        res_note = None
+
+    mse = calculate_mse(orig, cleaned_eval)
+    psnr = calculate_psnr(orig, cleaned_eval)
+    ssim = calculate_ssim(orig, cleaned_eval)
+
+    qual = "Excellent (Imperceptible)" if psnr > 40 else "Good" if psnr > 34 else "Moderate"
+    if res_note:
+        qual = f"{qual} ({res_note})"
 
     return {
         "mse": round(mse, 4),
         "psnr_db": round(psnr, 2) if psnr != float("inf") else "inf",
         "ssim": round(ssim, 4),
-        "quality_preservation": "Excellent (Imperceptible)" if psnr > 40 else "Good" if psnr > 34 else "Moderate",
+        "quality_preservation": qual,
     }
 
