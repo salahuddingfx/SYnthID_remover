@@ -101,3 +101,4 @@ def compute_fft_magnitude_spectrum(img_arr: np.ndarray) -> np.ndarray:
     # Normalize to 0-255
     norm_spec = (magnitude_spectrum - np.min(magnitude_spectrum)) / (np.ptp(magnitude_spectrum) + 1e-7) * 255.0
     return norm_spec.astype(np.uint8)
+

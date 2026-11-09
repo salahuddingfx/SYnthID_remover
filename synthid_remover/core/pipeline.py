@@ -11,6 +11,7 @@ from PIL import Image
 from synthid_remover.metadata.cleaner import clean_image_metadata
 from synthid_remover.filters.dct_filter import purify_dct_block, purify_dct_global
 from synthid_remover.filters.spatial_purifier import desynchronize_grid, edge_preserving_denoise, chroma_decorrelation
+from synthid_remover.filters.inpainter import remove_visible_badge
 from synthid_remover.core.metrics import evaluate_fidelity
 
 
@@ -19,16 +20,18 @@ class SynthIDPurifier:
     Main engine for removing SynthID and AI steganographic watermarks from images.
     """
 
-    def __init__(self, mode: str = "balanced", strength: float = 0.35, desync_grid: bool = True):
+    def __init__(self, mode: str = "balanced", strength: float = 0.35, desync_grid: bool = True, remove_badge: bool = False):
         """
         Args:
             mode: 'fast', 'balanced', 'deep', or 'metadata_only'
             strength: Perturbation strength for frequency/spatial filters (0.1 to 1.0)
             desync_grid: Whether to apply subpixel Lanczos desynchronization
+            remove_badge: Whether to detect and inpaint visible corner badges (e.g. Gemini sparkle)
         """
         self.mode = mode.lower()
         self.strength = float(strength)
         self.desync_grid = desync_grid
+        self.remove_badge = remove_badge
 
     def process_image(self, input_path: str, output_path: str, output_format: Optional[str] = None) -> Dict[str, Any]:
         """
@@ -50,6 +53,8 @@ class SynthIDPurifier:
 
         # Load image
         with Image.open(input_path) as orig_pil:
+            if self.remove_badge:
+                orig_pil = remove_visible_badge(orig_pil, corner="bottom_right")
             # Normalize to RGB or RGBA
             has_alpha = orig_pil.mode in ("RGBA", "LA") or (orig_pil.mode == "P" and "transparency" in orig_pil.info)
             working_pil = orig_pil.convert("RGBA" if has_alpha else "RGB")

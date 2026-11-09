@@ -133,6 +133,11 @@ HTML_PAGE = """<!DOCTYPE html>
         </div>
       </div>
 
+      <div style="margin-top: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+        <input type="checkbox" id="badgeCheck" style="width: 18px; height: 18px; cursor: pointer;">
+        <label for="badgeCheck" style="cursor: pointer; text-transform: none; font-size: 0.95rem; color: var(--text);">Remove Visible Badge (Inpaint Gemini/Veo corner sparkle)</label>
+      </div>
+
       <button class="btn" id="processBtn" disabled onclick="processImage()">Purify Image</button>
     </div>
 
@@ -196,6 +201,7 @@ HTML_PAGE = """<!DOCTYPE html>
       formData.append('image', selectedFile);
       formData.append('mode', document.getElementById('modeSelect').value);
       formData.append('strength', document.getElementById('strengthRange').value);
+      formData.append('remove_badge', document.getElementById('badgeCheck').checked ? 'true' : 'false');
 
       try {
         const res = await fetch('/api/purify', { method: 'POST', body: formData });
@@ -254,6 +260,7 @@ class SynthIDWebHandler(BaseHTTPRequestHandler):
             file_bytes = None
             mode = "balanced"
             strength = 0.35
+            remove_badge = False
 
             for part in parts:
                 if b'name="image"' in part:
@@ -271,6 +278,11 @@ class SynthIDWebHandler(BaseHTTPRequestHandler):
                             strength = float(part[header_end + 4 :].rstrip(b"\r\n"))
                         except ValueError:
                             pass
+                elif b'name="remove_badge"' in part:
+                    header_end = part.find(b"\r\n\r\n")
+                    if header_end != -1:
+                        val = part[header_end + 4 :].rstrip(b"\r\n").decode("utf-8", errors="ignore")
+                        remove_badge = (val == "true")
 
             if not file_bytes:
                 self.send_json({"success": False, "error": "No image uploaded"}, 400)
@@ -284,7 +296,7 @@ class SynthIDWebHandler(BaseHTTPRequestHandler):
                 with open(input_file, "wb") as f:
                     f.write(file_bytes)
 
-                purifier = SynthIDPurifier(mode=mode, strength=strength)
+                purifier = SynthIDPurifier(mode=mode, strength=strength, remove_badge=remove_badge)
                 res = purifier.process_image(input_file, output_file, output_format="PNG")
 
                 with open(output_file, "rb") as f:
@@ -322,3 +334,4 @@ def start_server(host: str = "127.0.0.1", port: int = 8080):
 
 if __name__ == "__main__":
     start_server()
+

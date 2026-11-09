@@ -10,6 +10,7 @@ from PIL import Image
 
 from synthid_remover.core.pipeline import SynthIDPurifier
 from synthid_remover.metadata.cleaner import clean_video_c2pa, C2PA_BOX_UUID
+from synthid_remover.filters.inpainter import remove_visible_badge
 
 
 def create_synthetic_watermarked_image(path: str, size=(256, 256)):
@@ -85,8 +86,25 @@ def test_video_c2pa_atom_scrubber():
         print("✓ Video C2PA box stripping passed!")
 
 
+def test_badge_inpainting():
+    # Create test image with simulated bright badge stamp in bottom right
+    arr = np.ones((256, 256, 3), dtype=np.uint8) * 120
+    # Add simulated 12x12 white sparkle badge
+    arr[235:247, 235:247, :] = 255
+
+    img = Image.fromarray(arr)
+    cleaned = remove_visible_badge(img, corner="bottom_right")
+    cleaned_arr = np.array(cleaned)
+
+    # Inpainted pixels should no longer be pure 255
+    badge_region = cleaned_arr[235:247, 235:247, :]
+    assert np.mean(badge_region) < 250, "Badge region was not inpainted"
+    print("✓ Badge inpainting passed!")
+
+
 if __name__ == "__main__":
     test_purification_modes()
     test_video_c2pa_atom_scrubber()
+    test_badge_inpainting()
     print("\n🎉 All tests passed successfully!")
 

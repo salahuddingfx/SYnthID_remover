@@ -51,6 +51,11 @@ def build_parser():
         help="Disable sub-pixel Lanczos grid desynchronization.",
     )
     parser.add_argument(
+        "--remove-badge",
+        action="store_true",
+        help="Detect and inpaint visible corner watermarks (e.g. Gemini sparkle badge).",
+    )
+    parser.add_argument(
         "-f", "--format",
         choices=["png", "jpg", "jpeg", "webp"],
         help="Force output image format.",
@@ -158,6 +163,7 @@ def main():
         mode=args.mode,
         strength=args.strength,
         desync_grid=not args.no_desync,
+        remove_badge=args.remove_badge,
     )
 
     if os.path.isfile(input_path):
