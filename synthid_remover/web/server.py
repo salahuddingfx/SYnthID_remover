@@ -100,6 +100,79 @@ HTML_PAGE = """<!DOCTYPE html>
       display: inline-block; background: var(--success); color: #0f172a; font-weight: 700;
       padding: 0.7rem 1.5rem; border-radius: 8px; text-decoration: none; margin-top: 1rem;
     }
+    /* Comparison Slider */
+    .slider-container {
+      position: relative;
+      width: 100%;
+      max-width: 700px;
+      margin: 1.5rem auto 0 auto;
+      overflow: hidden;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      user-select: none;
+    }
+    .slider-img {
+      display: block;
+      width: 100%;
+      height: auto;
+      pointer-events: none;
+    }
+    .slider-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 50%;
+      height: 100%;
+      overflow: hidden;
+    }
+    .slider-handle {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 3px;
+      background: var(--brand);
+      cursor: ew-resize;
+    }
+    .slider-handle::after {
+      content: "⟨ ⟩";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--brand);
+      color: #0f172a;
+      font-weight: 900;
+      font-size: 11px;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+    .view-toggle {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+    }
+    .view-btn {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 0.4rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .view-btn.active {
+      background: var(--brand);
+      color: #0f172a;
+      border-color: var(--brand);
+    }
   </style>
 </head>
 <body>
@@ -154,7 +227,13 @@ HTML_PAGE = """<!DOCTYPE html>
         <div class="metric"><div class="val" id="qualityVal">--</div><div class="lbl">Visual Retention</div></div>
       </div>
 
-      <div class="preview-grid">
+      <div class="view-toggle">
+        <button class="view-btn active" id="btnSideBySide" onclick="switchView('sideBySide')">Side-by-Side</button>
+        <button class="view-btn" id="btnSlider" onclick="switchView('slider')">Interactive Split Slider</button>
+        <button class="view-btn" id="btnDiff" onclick="switchView('diff')">Watermark Residual Heatmap</button>
+      </div>
+
+      <div class="preview-grid" id="viewSideBySide">
         <div class="preview-box">
           <h4>Original Image</h4>
           <img id="origPreview">
@@ -162,9 +241,28 @@ HTML_PAGE = """<!DOCTYPE html>
         <div class="preview-box">
           <h4>Purified (Clean)</h4>
           <img id="cleanPreview">
-          <br>
-          <a id="downloadLink" class="download-btn" download="cleaned_image.png">Download Clean Image</a>
         </div>
+      </div>
+
+      <div id="viewSlider" style="display: none;">
+        <div class="slider-container" id="sliderContainer">
+          <img id="sliderClean" class="slider-img" alt="Cleaned">
+          <div class="slider-overlay" id="sliderOverlay">
+            <img id="sliderOrig" class="slider-img" alt="Original" style="position: absolute; top: 0; left: 0; max-width: none;">
+          </div>
+          <div class="slider-handle" id="sliderHandle"></div>
+        </div>
+        <p style="text-align: center; font-size: 0.8rem; color: var(--muted); margin-top: 0.5rem;">Drag the divider to compare Original (Left) vs Cleaned (Right)</p>
+      </div>
+
+      <div id="viewDiff" style="display: none; text-align: center;">
+        <h4 style="margin-top: 1rem;">Amplified Steganographic Perturbation Residual (×15)</h4>
+        <p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem;">Visualizes the neutralized SynthID carrier frequency noise.</p>
+        <img id="diffPreview" style="max-width: 100%; border-radius: 8px; border: 1px solid var(--border);">
+      </div>
+
+      <div style="text-align: center; margin-top: 1.5rem;">
+        <a id="downloadLink" class="download-btn" download="cleaned_image.png">Download Clean Image</a>
       </div>
     </div>
   </div>
@@ -188,8 +286,48 @@ HTML_PAGE = """<!DOCTYPE html>
       document.getElementById('fileLabel').innerText = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
       processBtn.disabled = false;
       const reader = new FileReader();
-      reader.onload = (e) => { document.getElementById('origPreview').src = e.target.result; };
+      reader.onload = (e) => {
+        document.getElementById('origPreview').src = e.target.result;
+        document.getElementById('sliderOrig').src = e.target.result;
+      };
       reader.readAsDataURL(file);
+    }
+
+    function switchView(view) {
+      ['sideBySide', 'slider', 'diff'].forEach(v => {
+        const el = document.getElementById('view' + v.charAt(0).toUpperCase() + v.slice(1));
+        const btn = document.getElementById('btn' + v.charAt(0).toUpperCase() + v.slice(1));
+        if (el) el.style.display = (v === view ? 'block' : 'none');
+        if (btn) btn.classList.toggle('active', v === view);
+      });
+      if (view === 'slider') initSlider();
+    }
+
+    function initSlider() {
+      const container = document.getElementById('sliderContainer');
+      const sliderOrig = document.getElementById('sliderOrig');
+      const overlay = document.getElementById('sliderOverlay');
+      const handle = document.getElementById('sliderHandle');
+      if (!container || !sliderOrig) return;
+
+      const w = container.offsetWidth;
+      sliderOrig.style.width = w + 'px';
+
+      let isDragging = false;
+      function setSliderPos(x) {
+        const rect = container.getBoundingClientRect();
+        let pos = Math.max(0, Math.min(x - rect.left, rect.width));
+        let pct = (pos / rect.width) * 100;
+        overlay.style.width = pct + '%';
+        handle.style.left = pct + '%';
+      }
+
+      container.onmousedown = (e) => { isDragging = true; setSliderPos(e.clientX); };
+      window.onmousemove = (e) => { if (isDragging) setSliderPos(e.clientX); };
+      window.onmouseup = () => { isDragging = false; };
+      container.ontouchstart = (e) => { isDragging = true; setSliderPos(e.touches[0].clientX); };
+      window.ontouchmove = (e) => { if (isDragging) setSliderPos(e.touches[0].clientX); };
+      window.ontouchend = () => { isDragging = false; };
     }
 
     async function processImage() {
@@ -209,6 +347,10 @@ HTML_PAGE = """<!DOCTYPE html>
         if (data.success) {
           document.getElementById('resultCard').style.display = 'block';
           document.getElementById('cleanPreview').src = data.cleaned_data_url;
+          document.getElementById('sliderClean').src = data.cleaned_data_url;
+          if (data.diff_data_url) {
+            document.getElementById('diffPreview').src = data.diff_data_url;
+          }
           document.getElementById('downloadLink').href = data.cleaned_data_url;
           document.getElementById('downloadLink').download = 'cleaned_' + selectedFile.name;
           document.getElementById('psnrVal').innerText = data.metrics.psnr_db + ' dB';
@@ -231,6 +373,11 @@ HTML_PAGE = """<!DOCTYPE html>
 
 
 class SynthIDWebHandler(BaseHTTPRequestHandler):
+    def do_HEAD(self):
+        self.send_response(200)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.end_headers()
+
     def do_GET(self):
         parsed = urlparse(self.path)
         if parsed.path in ("/", "/index.html"):
@@ -292,6 +439,7 @@ class SynthIDWebHandler(BaseHTTPRequestHandler):
             with tempfile.TemporaryDirectory() as tmpdir:
                 input_file = os.path.join(tmpdir, "input.png")
                 output_file = os.path.join(tmpdir, "output.png")
+                diff_file = os.path.join(tmpdir, "diff.png")
 
                 with open(input_file, "wb") as f:
                     f.write(file_bytes)
@@ -305,9 +453,20 @@ class SynthIDWebHandler(BaseHTTPRequestHandler):
                 b64_img = base64.b64encode(cleaned_bytes).decode("utf-8")
                 data_url = f"data:image/png;base64,{b64_img}"
 
+                diff_data_url = None
+                if mode != "metadata_only":
+                    try:
+                        generate_difference_heatmap(input_file, output_file, diff_file, amplify=15.0)
+                        with open(diff_file, "rb") as df:
+                            diff_b64 = base64.b64encode(df.read()).decode("utf-8")
+                            diff_data_url = f"data:image/png;base64,{diff_b64}"
+                    except Exception:
+                        pass
+
                 self.send_json({
                     "success": True,
                     "cleaned_data_url": data_url,
+                    "diff_data_url": diff_data_url,
                     "metrics": res.get("metrics", {}),
                     "mode": mode,
                 })
