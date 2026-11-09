@@ -460,6 +460,8 @@ class SynthIDWebHandler(BaseHTTPRequestHandler):
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.end_headers()
             self.wfile.write(HTML_PAGE.encode("utf-8"))
+        elif parsed.path in ("/healthz", "/healthcheck"):
+            self.send_json({"status": "healthy", "service": "synthid-remover"})
         elif parsed.path == "/favicon.ico":
             self.send_response(204)
             self.end_headers()

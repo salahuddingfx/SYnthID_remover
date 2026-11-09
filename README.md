@@ -1,6 +1,17 @@
+---
+title: SynthID & AI Watermark Remover
+emoji: 🛡️
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+license: mit
+---
+
 # SynthID & AI Watermark Remover
 
-A high-fidelity tool to remove invisible steganographic watermarks (**Google SynthID**), C2PA manifests, and EXIF/XMP metadata from AI-generated images and video containers while maintaining near-lossless visual quality (PSNR > 42 dB, SSIM > 0.99).
+A high-fidelity tool to remove invisible steganographic watermarks (**Google SynthID**), C2PA manifests, and EXIF/XMP metadata from AI-generated images and video containers while maintaining near-lossless visual quality (PSNR > 41 dB, SSIM > 0.99). Includes a built-in **Super-Resolution Upscaler**, **Social Media Sizer** (Facebook, Instagram, TikTok), and **Pixel Grid Divider** (Carousel Splitter).
 
 ---
 

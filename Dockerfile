@@ -19,3 +19,4 @@ ENV PORT=7860
 EXPOSE 7860
 
 CMD ["python3", "app.py"]
+
