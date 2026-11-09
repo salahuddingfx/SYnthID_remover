@@ -78,7 +78,7 @@ def purify_gradio(image, mode, strength, upscale, social_preset, remove_badge, s
 
 
 def build_gradio_app():
-    with gr.Blocks(title="SynthID & AI Watermark Remover", theme=gr.themes.Soft()) as demo:
+    with gr.Blocks(title="SynthID & AI Watermark Remover") as demo:
         gr.Markdown(
             "# 🛡️ SynthID & AI Watermark Remover\n"
             "**Remove invisible SynthID watermarks, C2PA manifests, and EXIF metadata from AI-generated images with near-lossless visual quality.**"
