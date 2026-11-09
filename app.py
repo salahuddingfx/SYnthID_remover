@@ -19,6 +19,12 @@ try:
 except ImportError:
     HAS_GRADIO = False
 
+try:
+    import spaces
+    HAS_SPACES = True
+except ImportError:
+    HAS_SPACES = False
+
 
 def purify_gradio(image, mode, strength, upscale, social_preset, remove_badge, split_grid):
     if image is None:
@@ -75,6 +81,11 @@ def purify_gradio(image, mode, strength, upscale, social_preset, remove_badge, s
         )
 
         return cleaned_pil, diff_pil, tiles, report
+
+
+# Enable ZeroGPU acceleration on Hugging Face Spaces if requested
+if HAS_SPACES:
+    purify_gradio = spaces.GPU(purify_gradio)
 
 
 def build_gradio_app():
