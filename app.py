@@ -21,11 +21,17 @@ except ImportError:
 
 try:
     import spaces
-    HAS_SPACES = True
+    GPU = spaces.GPU
 except ImportError:
-    HAS_SPACES = False
+    def GPU(func=None, **kwargs):
+        if func is not None:
+            return func
+        def decorator(f):
+            return f
+        return decorator
 
 
+@GPU
 def purify_gradio(image, mode, strength, upscale, social_preset, remove_badge, split_grid):
     if image is None:
         return None, None, [], "⚠️ Please upload an image first."
@@ -81,11 +87,6 @@ def purify_gradio(image, mode, strength, upscale, social_preset, remove_badge, s
         )
 
         return cleaned_pil, diff_pil, tiles, report
-
-
-# Enable ZeroGPU acceleration on Hugging Face Spaces if requested
-if HAS_SPACES:
-    purify_gradio = spaces.GPU(purify_gradio)
 
 
 def build_gradio_app():
