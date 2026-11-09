@@ -8,18 +8,28 @@ import numpy as np
 from PIL import Image, ImageFilter
 
 
-def desynchronize_grid(img: Image.Image, scale_factor: float = 0.996) -> Image.Image:
+def desynchronize_grid(img: Image.Image, scale_factor: float = 0.996, micro_rotation_deg: float = 0.15) -> Image.Image:
     """
-    Sub-pixel Spatial Grid Desynchronization.
-    Downscales by a fraction of a percent with Lanczos resampling and restores dimensions.
-    This shifts the spatial phase alignment of the convolutional kernels used in SynthID detectors.
+    Sub-pixel Spatial Grid and Lattice Desynchronization.
+    Combines micro-rotation (0.15 deg) with Lanczos micro-scaling (0.998x).
+    Convolutional neural detectors (like SynthID) rely on rigid periodic lattice alignment;
+    sub-pixel geometric perturbation shatters the detector's spatial reception field correlation.
     """
     w, h = img.size
+
+    # Step 1: Sub-pixel micro-rotation with bicubic interpolation
+    if micro_rotation_deg != 0.0:
+        # Rotate slightly and rotate back to introduce sub-pixel phase jitter
+        rotated = img.rotate(micro_rotation_deg, resample=Image.Resampling.BICUBIC)
+        unrotated = rotated.rotate(-micro_rotation_deg, resample=Image.Resampling.BICUBIC)
+    else:
+        unrotated = img
+
+    # Step 2: Micro-scale Lanczos resampling
     new_w = max(1, int(round(w * scale_factor)))
     new_h = max(1, int(round(h * scale_factor)))
 
-    # Resample using high-order Lanczos filter to disrupt steganographic grid alignment
-    resampled = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+    resampled = unrotated.resize((new_w, new_h), Image.Resampling.LANCZOS)
     restored = resampled.resize((w, h), Image.Resampling.LANCZOS)
     return restored
 
