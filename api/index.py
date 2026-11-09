@@ -14,3 +14,4 @@ from synthid_remover.web.server import SynthIDWebHandler
 
 # Vercel entrypoint
 handler = SynthIDWebHandler
+

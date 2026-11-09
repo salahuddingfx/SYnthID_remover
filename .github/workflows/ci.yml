@@ -22,3 +22,4 @@ jobs:
     - name: Run Test Suite
       run: |
         python tests/test_purifier.py
+
