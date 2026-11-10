@@ -89,7 +89,9 @@ class SynthIDPurifier:
         # Step 1: Spatial Grid Desynchronization (disrupts fixed convolutional reception fields)
         if self.desync_grid and self.mode in ("balanced", "deep"):
             temp_img = Image.fromarray(rgb_arr)
-            temp_img = desynchronize_grid(temp_img, scale_factor=0.998)
+            scale = 0.999 if self.mode == "deep" else 0.9995
+            rot = 0.05 if self.mode == "deep" else 0.03
+            temp_img = desynchronize_grid(temp_img, scale_factor=scale, micro_rotation_deg=rot)
             rgb_arr = np.array(temp_img)
 
         # Step 2: Frequency-domain DCT Dithering
@@ -99,11 +101,11 @@ class SynthIDPurifier:
             rgb_arr = purify_dct_block(rgb_arr, strength=self.strength, seed=42)
         elif self.mode == "balanced":
             # Localized 8x8 block DCT with HVS quantization mask
-            rgb_arr = purify_dct_block(rgb_arr, strength=self.strength, seed=42)
+            rgb_arr = purify_dct_block(rgb_arr, strength=self.strength * 0.8, seed=42)
 
         # Step 3: Chrominance Decorrelation (SynthID frequently embeds in color difference channels)
         if self.mode in ("fast", "balanced", "deep"):
-            jitter = 1.0 if self.mode == "fast" else (1.5 * self.strength)
+            jitter = 0.8 * self.strength if self.mode != "fast" else 0.5
             rgb_arr = chroma_decorrelation(rgb_arr, jitter_strength=jitter)
 
         # Step 4: Edge-Preserving Denoising (removes residual micro-steganographic perturbations)
@@ -111,8 +113,8 @@ class SynthIDPurifier:
             rgb_arr = edge_preserving_denoise(
                 rgb_arr,
                 diameter=5,
-                sigma_color=10.0 * self.strength,
-                sigma_space=2.5,
+                sigma_color=4.0 * self.strength,
+                sigma_space=2.0,
             )
 
         # Recombine alpha channel if needed

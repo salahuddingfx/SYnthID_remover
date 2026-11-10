@@ -8,37 +8,36 @@ import numpy as np
 from PIL import Image, ImageFilter
 
 
-def desynchronize_grid(img: Image.Image, scale_factor: float = 0.996, micro_rotation_deg: float = 0.15) -> Image.Image:
+def desynchronize_grid(img: Image.Image, scale_factor: float = 0.9995, micro_rotation_deg: float = 0.03) -> Image.Image:
     """
     Sub-pixel Spatial Grid and Lattice Desynchronization.
-    Combines micro-rotation (0.15 deg) with Lanczos micro-scaling (0.998x).
-    Convolutional neural detectors (like SynthID) rely on rigid periodic lattice alignment;
-    sub-pixel geometric perturbation shatters the detector's spatial reception field correlation.
+    Combines micro-phase jitter (0.03 deg) with precision Lanczos boundary preservation.
+    Disrupts rigid convolutional neural reception fields without causing perceptible softening of text or edges.
     """
     w, h = img.size
 
     # Step 1: Sub-pixel micro-rotation with bicubic interpolation
     if micro_rotation_deg != 0.0:
-        # Rotate slightly and rotate back to introduce sub-pixel phase jitter
         rotated = img.rotate(micro_rotation_deg, resample=Image.Resampling.BICUBIC)
         unrotated = rotated.rotate(-micro_rotation_deg, resample=Image.Resampling.BICUBIC)
     else:
         unrotated = img
 
-    # Step 2: Micro-scale Lanczos resampling
-    new_w = max(1, int(round(w * scale_factor)))
-    new_h = max(1, int(round(h * scale_factor)))
+    # Step 2: Precision micro-scale Lanczos resampling (only if scale_factor != 1.0)
+    if scale_factor < 0.9999:
+        new_w = max(1, int(round(w * scale_factor)))
+        new_h = max(1, int(round(h * scale_factor)))
+        resampled = unrotated.resize((new_w, new_h), Image.Resampling.LANCZOS)
+        restored = resampled.resize((w, h), Image.Resampling.LANCZOS)
+        return restored
+    return unrotated
 
-    resampled = unrotated.resize((new_w, new_h), Image.Resampling.LANCZOS)
-    restored = resampled.resize((w, h), Image.Resampling.LANCZOS)
-    return restored
 
-
-def edge_preserving_denoise(img_arr: np.ndarray, diameter: int = 5, sigma_color: float = 12.0, sigma_space: float = 3.0) -> np.ndarray:
+def edge_preserving_denoise(img_arr: np.ndarray, diameter: int = 5, sigma_color: float = 5.0, sigma_space: float = 2.0) -> np.ndarray:
     """
     Fast Vectorized Edge-Preserving Bilateral Filtering.
     Smooths flat and fine-noise regions where steganographic perturbations reside,
-    while locking onto and preserving high-contrast semantic edges.
+    while locking tightly onto and preserving high-contrast semantic edges and text.
     """
     orig_dtype = img_arr.dtype
     arr = img_arr.astype(np.float32)
