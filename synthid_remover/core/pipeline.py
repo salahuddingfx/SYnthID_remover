@@ -94,14 +94,14 @@ class SynthIDPurifier:
             temp_img = desynchronize_grid(temp_img, scale_factor=scale, micro_rotation_deg=rot)
             rgb_arr = np.array(temp_img)
 
-        # Step 2: Frequency-domain DCT Dithering
+        # Step 2: Frequency-domain DCT Dithering in YCbCr space
         if self.mode == "deep":
             # Global DCT followed by localized block DCT
             rgb_arr = purify_dct_global(rgb_arr, strength=self.strength * 0.7)
-            rgb_arr = purify_dct_block(rgb_arr, strength=self.strength, seed=42)
+            rgb_arr = purify_dct_block(rgb_arr, strength=self.strength, seed=42, use_ycbcr=True)
         elif self.mode == "balanced":
-            # Localized 8x8 block DCT with HVS quantization mask
-            rgb_arr = purify_dct_block(rgb_arr, strength=self.strength * 0.8, seed=42)
+            # Localized 8x8 block DCT with HVS quantization mask in YCbCr space
+            rgb_arr = purify_dct_block(rgb_arr, strength=self.strength, seed=42, use_ycbcr=True)
 
         # Step 3: Chrominance Decorrelation (SynthID frequently embeds in color difference channels)
         if self.mode in ("fast", "balanced", "deep"):

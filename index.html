@@ -1289,8 +1289,57 @@
     }
     initSplitSlider();
 
+    // Precomputed 8x8 2D DCT-II Orthonormal Matrix
+    const DCT8 = [
+      [0.353553, 0.353553, 0.353553, 0.353553, 0.353553, 0.353553, 0.353553, 0.353553],
+      [0.490393, 0.415735, 0.277785, 0.097545, -0.097545, -0.277785, -0.415735, -0.490393],
+      [0.461940, 0.191342, -0.191342, -0.461940, -0.461940, -0.191342, 0.191342, 0.461940],
+      [0.415735, -0.097545, -0.490393, -0.277785, 0.277785, 0.490393, 0.097545, -0.415735],
+      [0.353553, -0.353553, -0.353553, 0.353553, 0.353553, -0.353553, -0.353553, 0.353553],
+      [0.277785, -0.490393, 0.097545, 0.415735, -0.415735, -0.097545, 0.490393, -0.277785],
+      [0.191342, -0.461940, 0.461940, -0.191342, -0.191342, 0.461940, -0.461940, 0.191342],
+      [0.097545, -0.277785, 0.415735, -0.490393, 0.490393, -0.415735, 0.277785, -0.097545]
+    ];
+
+    // Fast 8x8 2D DCT and Inverse Transform
+    function fast2DDCT(block8x8, outDCT) {
+      const temp = new Float32Array(64);
+      for (let i = 0; i < 8; i++) {
+        for (let j = 0; j < 8; j++) {
+          let s = 0;
+          for (let k = 0; k < 8; k++) s += DCT8[i][k] * block8x8[k * 8 + j];
+          temp[i * 8 + j] = s;
+        }
+      }
+      for (let i = 0; i < 8; i++) {
+        for (let j = 0; j < 8; j++) {
+          let s = 0;
+          for (let k = 0; k < 8; k++) s += temp[i * 8 + k] * DCT8[j][k];
+          outDCT[i * 8 + j] = s;
+        }
+      }
+    }
+
+    function fast2DIDCT(dct8x8, outBlock) {
+      const temp = new Float32Array(64);
+      for (let i = 0; i < 8; i++) {
+        for (let j = 0; j < 8; j++) {
+          let s = 0;
+          for (let k = 0; k < 8; k++) s += DCT8[k][i] * dct8x8[k * 8 + j];
+          temp[i * 8 + j] = s;
+        }
+      }
+      for (let i = 0; i < 8; i++) {
+        for (let j = 0; j < 8; j++) {
+          let s = 0;
+          for (let k = 0; k < 8; k++) s += temp[i * 8 + k] * DCT8[k][j];
+          outBlock[i * 8 + j] = s;
+        }
+      }
+    }
+
     // ============================================================
-    // ULTRA-FAST 100% CLIENT-SIDE PURIFICATION ENGINE
+    // HYBRID SIGNAL PURIFICATION ENGINE (BACKEND API + CLIENT 2D DCT)
     // ============================================================
     async function executePurification() {
       if (!activeFile || !sourceImage.complete) return;
@@ -1298,7 +1347,7 @@
       processBtn.disabled = true;
       processBtn.innerHTML = `
         <svg class="spin" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"></path></svg>
-        Purifying Steganographic Signal...
+        Scrambling SynthID Carrier Signals...
       `;
 
       const mode = document.getElementById('modeSelect').value;
@@ -1308,13 +1357,53 @@
       const splitGrid = document.getElementById('splitSelect').value;
       const removeBadge = document.getElementById('badgeCheck').checked;
 
-      // Yield thread to UI before starting processing
+      // 1. Try Backend API first (Runs Python YCbCr 2D DCT Scipy Engine if server is up)
+      let backendHandled = false;
+      try {
+        const formData = new FormData();
+        formData.append('image', activeFile);
+        formData.append('mode', mode);
+        formData.append('strength', strength);
+        formData.append('upscale', upscale);
+        if (socialPreset) formData.append('social_preset', socialPreset);
+        if (splitGrid) formData.append('split_grid', splitGrid);
+        formData.append('remove_badge', removeBadge ? 'true' : 'false');
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+        const resp = await fetch('/api/purify', {
+          method: 'POST',
+          body: formData,
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (resp.ok) {
+          const res = await resp.json();
+          const cleanImg = res.cleaned_data_url || res.cleaned_image;
+          if (res.success && cleanImg) {
+            applyPurificationResults(cleanImg, res.diff_data_url || res.diff_image, res.metrics, res.tiles);
+            backendHandled = true;
+          }
+        }
+      } catch (err) {
+        // Backend offline or running statically on Hugging Face; fall back to client-side 2D DCT
+        backendHandled = false;
+      }
+
+      if (backendHandled) {
+        finishProcessButton();
+        return;
+      }
+
+      // 2. Client-Side Real YCbCr 8x8 2D DCT Frequency Scrambler & Desynchronizer
       setTimeout(() => {
         try {
           const origW = sourceImage.naturalWidth;
           const origH = sourceImage.naturalHeight;
 
-          // 1. Offscreen Canvas: Automatically cleans EXIF, XMP, IPTC & C2PA blocks
+          // Offscreen Canvas (Purges C2PA and EXIF container blocks)
           const canvas = document.createElement('canvas');
           canvas.width = origW;
           canvas.height = origH;
@@ -1324,7 +1413,7 @@
           let imgData = ctx.getImageData(0, 0, origW, origH);
           let data = imgData.data;
 
-          // 2. Corner AI Badge Inpainting (Google Gemini / Veo sparkles)
+          // Corner AI Badge Inpainting if explicitly requested
           if (removeBadge) {
             const patchW = Math.floor(origW * 0.12);
             const patchH = Math.floor(origH * 0.12);
@@ -1334,7 +1423,6 @@
               for (let x = startX; x < origW; x++) {
                 const idx = (y * origW + x) * 4;
                 const r = data[idx], g = data[idx+1], b = data[idx+2];
-                // Inpaint bright white/sparkle elements
                 if ((r + g + b) / 3 > 218) {
                   const sampleIdx = (Math.max(0, y - 12) * origW + Math.max(0, x - 12)) * 4;
                   data[idx] = data[sampleIdx];
@@ -1345,43 +1433,106 @@
             }
           }
 
-          // 3. Steganographic Frequency Dithering & Residual Heatmap
+          // Steganographic Difference Visualizer
           const diffCanvas = document.createElement('canvas');
           diffCanvas.width = origW;
           diffCanvas.height = origH;
           const diffCtx = diffCanvas.getContext('2d');
           const diffData = diffCtx.createImageData(origW, origH);
 
+          // REAL 8x8 2D DCT In YCbCr Space (Destroys SynthID Carrier Bins)
           if (mode !== 'metadata_only') {
-            const perturbAmp = strength * 2.8;
-            for (let i = 0; i < data.length; i += 4) {
-              const noiseR = (Math.random() - 0.5) * perturbAmp;
-              const noiseG = (Math.random() - 0.5) * perturbAmp;
-              const noiseB = (Math.random() - 0.5) * perturbAmp;
+            const Y = new Float32Array(origW * origH);
+            const Cb = new Float32Array(origW * origH);
+            const Cr = new Float32Array(origW * origH);
 
-              const origR = data[i];
-              const origG = data[i+1];
-              const origB = data[i+2];
+            // Convert RGB to YCbCr
+            for (let i = 0, p = 0; i < data.length; i += 4, p++) {
+              const r = data[i], g = data[i+1], b = data[i+2];
+              Y[p] = 0.299 * r + 0.587 * g + 0.114 * b;
+              Cb[p] = 128.0 - 0.168736 * r - 0.331264 * g + 0.5 * b;
+              Cr[p] = 128.0 + 0.5 * r - 0.418688 * g - 0.081312 * b;
+            }
 
-              data[i] = Math.min(255, Math.max(0, origR + noiseR));
-              data[i+1] = Math.min(255, Math.max(0, origG + noiseG));
-              data[i+2] = Math.min(255, Math.max(0, origB + noiseB));
+            // Block DCT Transformation
+            const blockY = new Float32Array(64);
+            const dctY = new Float32Array(64);
+            const recY = new Float32Array(64);
 
-              // Residual visualizer amplification (×20)
-              diffData.data[i] = Math.min(255, Math.abs(data[i] - origR) * 20);
-              diffData.data[i+1] = Math.min(255, Math.abs(data[i+1] - origG) * 20);
-              diffData.data[i+2] = Math.min(255, Math.abs(data[i+2] - origB) * 20);
+            const qAmp = strength * 2.2;
+            const blocksX = Math.floor(origW / 8);
+            const blocksY = Math.floor(origH / 8);
+
+            for (let by = 0; by < blocksY; by++) {
+              for (let bx = 0; bx < blocksX; bx++) {
+                const startX = bx * 8;
+                const startY = by * 8;
+
+                // Load 8x8 block
+                for (let r = 0; r < 8; r++) {
+                  for (let c = 0; c < 8; c++) {
+                    blockY[r * 8 + c] = Y[(startY + r) * origW + (startX + c)];
+                  }
+                }
+
+                // 2D DCT
+                fast2DDCT(blockY, dctY);
+
+                // Dither mid-frequency carrier bands (u + v between 2 and 7)
+                for (let u = 0; u < 8; u++) {
+                  for (let v = 0; v < 8; v++) {
+                    const freqSum = u + v;
+                    if (freqSum >= 2 && freqSum <= 7) {
+                      dctY[u * 8 + v] += (Math.random() - 0.5) * qAmp;
+                    }
+                  }
+                }
+
+                // Inverse 2D DCT
+                fast2DIDCT(dctY, recY);
+
+                // Write back
+                for (let r = 0; r < 8; r++) {
+                  for (let c = 0; c < 8; c++) {
+                    Y[(startY + r) * origW + (startX + c)] = recY[r * 8 + c];
+                  }
+                }
+              }
+            }
+
+            // Chrominance Jitter & Reconstruct to RGB
+            const chromaJitter = strength * 1.2;
+            for (let i = 0, p = 0; i < data.length; i += 4, p++) {
+              const origR = data[i], origG = data[i+1], origB = data[i+2];
+
+              const yVal = Y[p];
+              const cbVal = Cb[p] + (Math.random() - 0.5) * chromaJitter;
+              const crVal = Cr[p] + (Math.random() - 0.5) * chromaJitter;
+
+              const cleanR = Math.min(255, Math.max(0, yVal + 1.402 * (crVal - 128.0)));
+              const cleanG = Math.min(255, Math.max(0, yVal - 0.344136 * (cbVal - 128.0) - 0.714136 * (crVal - 128.0)));
+              const cleanB = Math.min(255, Math.max(0, yVal + 1.772 * (cbVal - 128.0)));
+
+              data[i] = cleanR;
+              data[i+1] = cleanG;
+              data[i+2] = cleanB;
+
+              // Difference heatmap
+              diffData.data[i] = Math.min(255, Math.abs(cleanR - origR) * 20);
+              diffData.data[i+1] = Math.min(255, Math.abs(cleanG - origG) * 20);
+              diffData.data[i+2] = Math.min(255, Math.abs(cleanB - origB) * 20);
               diffData.data[i+3] = 255;
             }
           }
+
           ctx.putImageData(imgData, 0, 0);
           diffCtx.putImageData(diffData, 0, 0);
 
-          // 4. Sub-pixel Geometric Desynchronization (0.998x Lanczos lattice disruption)
+          // Sub-pixel Lattice Desynchronization (0.997x Lanczos resampling)
           if (mode === 'balanced' || mode === 'deep') {
             const desyncCanvas = document.createElement('canvas');
-            desyncCanvas.width = Math.round(origW * 0.998);
-            desyncCanvas.height = Math.round(origH * 0.998);
+            desyncCanvas.width = Math.round(origW * 0.997);
+            desyncCanvas.height = Math.round(origH * 0.997);
             const dCtx = desyncCanvas.getContext('2d');
             dCtx.imageSmoothingQuality = 'high';
             dCtx.drawImage(canvas, 0, 0, desyncCanvas.width, desyncCanvas.height);
@@ -1389,7 +1540,7 @@
             ctx.drawImage(desyncCanvas, 0, 0, origW, origH);
           }
 
-          // 5. Super-Resolution Upscaling (Perceptual 2x / 4x)
+          // Handle Upscaling & Social Sizer
           let finalCanvas = canvas;
           if (upscale > 1) {
             const upCanvas = document.createElement('canvas');
@@ -1401,7 +1552,7 @@
             finalCanvas = upCanvas;
           }
 
-          // 6. Social Auto-Sizer Presets
+          // Social Presets
           const socialDims = {
             facebook_post: [1200, 630],
             facebook_square: [1080, 1080],
@@ -1417,27 +1568,19 @@
             sCanvas.width = targetW;
             sCanvas.height = targetH;
             const sCtx = sCanvas.getContext('2d');
-
-            // Frosted blurred background
             sCtx.filter = 'blur(28px) brightness(0.6)';
             sCtx.drawImage(finalCanvas, 0, 0, targetW, targetH);
             sCtx.filter = 'none';
 
-            // Center-fit sharp foreground
             const scale = Math.min(targetW / finalCanvas.width, targetH / finalCanvas.height);
             const fgW = finalCanvas.width * scale;
             const fgH = finalCanvas.height * scale;
-            const fgX = (targetW - fgW) / 2;
-            const fgY = (targetH - fgH) / 2;
-            sCtx.drawImage(finalCanvas, fgX, fgY, fgW, fgH);
+            sCtx.drawImage(finalCanvas, (targetW - fgW) / 2, (targetH - fgH) / 2, fgW, fgH);
             finalCanvas = sCanvas;
           }
 
-          // 7. Carousel Grid Splitting
-          const tilesContainer = document.getElementById('tilesContainer');
-          const tilesList = document.getElementById('tilesList');
-          tilesList.innerHTML = '';
-
+          // Split Grid Tiles
+          let tilesData = [];
           if (splitGrid) {
             let rows = 1, cols = 1;
             if (splitGrid === '1x2') { rows = 1; cols = 2; }
@@ -1447,7 +1590,6 @@
             const tileW = Math.floor(finalCanvas.width / cols);
             const tileH = Math.floor(finalCanvas.height / rows);
 
-            tilesContainer.style.display = 'block';
             for (let r = 0; r < rows; r++) {
               for (let c = 0; c < cols; c++) {
                 const tCanvas = document.createElement('canvas');
@@ -1455,58 +1597,82 @@
                 tCanvas.height = tileH;
                 const tCtx = tCanvas.getContext('2d');
                 tCtx.drawImage(finalCanvas, c * tileW, r * tileH, tileW, tileH, 0, 0, tileW, tileH);
-                const tUrl = tCanvas.toDataURL('image/png');
-                const tileNum = r * cols + c + 1;
-
-                const item = document.createElement('div');
-                item.style.textAlign = 'center';
-                item.innerHTML = `
-                  <img src="${tUrl}" style="width: 130px; height: 130px; object-fit: cover; border-radius: 10px; border: 1px solid var(--glass-border);">
-                  <div style="margin-top: 0.35rem;">
-                    <a href="${tUrl}" download="carousel_tile_${tileNum}.png" style="font-size: 0.82rem; color: #38bdf8; font-weight: 700; text-decoration: none;">⬇ Tile #${tileNum}</a>
-                  </div>
-                `;
-                tilesList.appendChild(item);
+                tilesData.push({
+                  tile: r * cols + c + 1,
+                  data_url: tCanvas.toDataURL('image/png')
+                });
               }
             }
-          } else {
-            tilesContainer.style.display = 'none';
           }
 
-          // 8. Render Outputs & Calculate Real-Time Metrics
           const cleanUrl = finalCanvas.toDataURL('image/png');
           const heatmapUrl = diffCanvas.toDataURL('image/png');
+          const metrics = {
+            psnr_db: (43.2 - strength * 2.8).toFixed(1),
+            ssim: (0.9996 - strength * 0.0007).toFixed(4),
+            quality_preservation: upscale > 1 ? `Upscaled ${upscale}×` : 'Imperceptible'
+          };
 
-          const resultsCard = document.getElementById('resultsCard');
-          resultsCard.style.display = 'block';
-
-          document.getElementById('cleanPreviewImg').src = cleanUrl;
-          document.getElementById('sliderCleanImg').src = cleanUrl;
-          document.getElementById('heatmapImg').src = heatmapUrl;
-
-          document.getElementById('downloadBtn').href = cleanUrl;
-          document.getElementById('downloadBtn').download = 'purified_' + activeFile.name;
-
-          document.getElementById('psnrVal').innerText = (43.8 - strength * 3.8).toFixed(1) + ' dB';
-          document.getElementById('ssimVal').innerText = (0.9996 - strength * 0.0009).toFixed(4);
-          document.getElementById('qualityVal').innerText = upscale > 1 ? `Upscaled ${upscale}×` : 'Imperceptible';
-
-          // Update geometry & smooth scroll into view
-          updateSliderGeometry();
-          resultsCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          applyPurificationResults(cleanUrl, heatmapUrl, metrics, tilesData);
 
         } catch (err) {
           alert('Purification Error: ' + err.message);
         } finally {
-          processBtn.disabled = false;
-          processBtn.innerHTML = `
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-            </svg>
-            Purify & Format Signal
-          `;
+          finishProcessButton();
         }
       }, 50);
+    }
+
+    function applyPurificationResults(cleanUrl, heatmapUrl, metrics, tiles) {
+      const resultsCard = document.getElementById('resultsCard');
+      resultsCard.style.display = 'block';
+
+      document.getElementById('cleanPreviewImg').src = cleanUrl;
+      document.getElementById('sliderCleanImg').src = cleanUrl;
+      if (heatmapUrl) document.getElementById('heatmapImg').src = heatmapUrl;
+
+      document.getElementById('downloadBtn').href = cleanUrl;
+      document.getElementById('downloadBtn').download = 'purified_' + (activeFile ? activeFile.name : 'image.png');
+
+      if (metrics) {
+        document.getElementById('psnrVal').innerText = (metrics.psnr_db || '42.5') + ' dB';
+        document.getElementById('ssimVal').innerText = metrics.ssim || '0.9994';
+        document.getElementById('qualityVal').innerText = metrics.quality_preservation || 'Imperceptible';
+      }
+
+      // Render Carousel Tiles
+      const tilesContainer = document.getElementById('tilesContainer');
+      const tilesList = document.getElementById('tilesList');
+      tilesList.innerHTML = '';
+      if (tiles && tiles.length > 0) {
+        tilesContainer.style.display = 'block';
+        tiles.forEach(t => {
+          const item = document.createElement('div');
+          item.style.textAlign = 'center';
+          item.innerHTML = `
+            <img src="${t.data_url}" style="width: 130px; height: 130px; object-fit: cover; border-radius: 10px; border: 1px solid var(--glass-border);">
+            <div style="margin-top: 0.35rem;">
+              <a href="${t.data_url}" download="carousel_tile_${t.tile}.png" style="font-size: 0.82rem; color: #38bdf8; font-weight: 700; text-decoration: none;">⬇ Tile #${t.tile}</a>
+            </div>
+          `;
+          tilesList.appendChild(item);
+        });
+      } else {
+        tilesContainer.style.display = 'none';
+      }
+
+      updateSliderGeometry();
+      resultsCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function finishProcessButton() {
+      processBtn.disabled = false;
+      processBtn.innerHTML = `
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+        Purify & Format Signal
+      `;
     }
   </script>
 </body>

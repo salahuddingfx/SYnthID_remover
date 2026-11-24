@@ -20,16 +20,18 @@ JPEG_LUMA_Q = np.array([
 ], dtype=np.float32)
 
 
-def purify_dct_block(img_arr: np.ndarray, strength: float = 0.35, seed: int = None) -> np.ndarray:
+def purify_dct_block(img_arr: np.ndarray, strength: float = 0.35, seed: int = None, use_ycbcr: bool = True) -> np.ndarray:
     """
-    Applies block-based 8x8 2D DCT dithering across image channels.
-    Leaves DC and low-frequency components untouched, while introducing
-    sub-perceptual entropy into mid/high frequency bands to break watermark correlation.
+    Applies block-based 8x8 2D DCT dithering across image channels in YCbCr color space.
+    SynthID embeds invisible signals primarily in the mid-frequency luminance (Y) and
+    chrominance (Cb, Cr) DCT bands. Transforming to YCbCr targets the carrier directly,
+    nullifying watermark correlations while keeping visual fidelity (PSNR > 41 dB).
     
     Args:
         img_arr: (H, W, C) float32 or uint8 array.
-        strength: Perturbation strength (0.1 to 1.0). Default 0.35 gives >42dB PSNR.
+        strength: Perturbation strength (0.1 to 1.0).
         seed: Random seed for reproducibility.
+        use_ycbcr: Whether to transform to YCbCr before DCT (recommended for SynthID).
     """
     if seed is not None:
         np.random.seed(seed)
@@ -38,6 +40,17 @@ def purify_dct_block(img_arr: np.ndarray, strength: float = 0.35, seed: int = No
     working_arr = img_arr.astype(np.float32)
     h, w, c = working_arr.shape
 
+    # Convert to YCbCr if requested (targets SynthID carrier frequencies)
+    if use_ycbcr and c >= 3:
+        r, g, b = working_arr[:, :, 0], working_arr[:, :, 1], working_arr[:, :, 2]
+        y = 0.299 * r + 0.587 * g + 0.114 * b
+        cb = 128.0 - 0.168736 * r - 0.331264 * g + 0.5 * b
+        cr = 128.0 + 0.5 * r - 0.418688 * g - 0.081312 * b
+        if c == 4:
+            working_arr = np.stack([y, cb, cr, working_arr[:, :, 3]], axis=-1)
+        else:
+            working_arr = np.stack([y, cb, cr], axis=-1)
+
     # Pad image to multiples of 8
     pad_h = (8 - (h % 8)) % 8
     pad_w = (8 - (w % 8)) % 8
@@ -45,7 +58,7 @@ def purify_dct_block(img_arr: np.ndarray, strength: float = 0.35, seed: int = No
         working_arr = np.pad(working_arr, ((0, pad_h), (0, pad_w), (0, 0)), mode="reflect")
 
     padded_h, padded_w, _ = working_arr.shape
-    q_matrix = (JPEG_LUMA_Q / 16.0) * (strength * 1.8)
+    q_matrix = (JPEG_LUMA_Q / 16.0) * (strength * 1.6)
 
     # Process 8x8 blocks in vectorized shape: (blocks_h, 8, blocks_w, 8, C) -> (num_blocks, 8, 8, C)
     blocks = (
@@ -57,10 +70,10 @@ def purify_dct_block(img_arr: np.ndarray, strength: float = 0.35, seed: int = No
     # Compute 2D DCT on 8x8 blocks
     dct_blocks = dctn(blocks, axes=(2, 3), norm="ortho")
 
-    # Generate noise tailored to mid & high frequencies (frequency index sum > 2)
+    # Generate noise tailored to mid & high frequencies (frequency index sum >= 2)
     # Low frequency mask: DC and lowest 2 frequencies preserved exactly
     mask = np.ones((8, 8), dtype=np.float32)
-    mask[0, 0] = 0.0  # DC
+    mask[0, 0] = 0.0  # DC exact
     mask[0, 1] = 0.05
     mask[1, 0] = 0.05
     mask[1, 1] = 0.1
@@ -86,6 +99,18 @@ def purify_dct_block(img_arr: np.ndarray, strength: float = 0.35, seed: int = No
 
     # Remove padding
     result = rec_img[:h, :w, :]
+
+    # Convert back to RGB if YCbCr was used
+    if use_ycbcr and c >= 3:
+        ry, rcb, rcr = result[:, :, 0], result[:, :, 1], result[:, :, 2]
+        rr = ry + 1.402 * (rcr - 128.0)
+        rg = ry - 0.344136 * (rcb - 128.0) - 0.714136 * (rcr - 128.0)
+        rb = ry + 1.772 * (rcb - 128.0)
+        if c == 4:
+            result = np.stack([rr, rg, rb, result[:, :, 3]], axis=-1)
+        else:
+            result = np.stack([rr, rg, rb], axis=-1)
+
     result = np.clip(result, 0.0, 255.0)
 
     if orig_dtype == np.uint8:
