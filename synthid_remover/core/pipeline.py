@@ -87,10 +87,10 @@ class SynthIDPurifier:
             alpha_channel = None
 
         # Step 1: Spatial Grid Desynchronization (disrupts fixed convolutional reception fields)
-        if self.desync_grid and self.mode in ("balanced", "deep"):
+        if self.desync_grid and self.mode in ("universal", "balanced", "deep"):
             temp_img = Image.fromarray(rgb_arr)
-            scale = 0.999 if self.mode == "deep" else 0.9995
-            rot = 0.05 if self.mode == "deep" else 0.03
+            scale = 0.997 if self.mode == "universal" else (0.999 if self.mode == "deep" else 0.9995)
+            rot = 0.06 if self.mode == "universal" else (0.05 if self.mode == "deep" else 0.03)
             temp_img = desynchronize_grid(temp_img, scale_factor=scale, micro_rotation_deg=rot)
             rgb_arr = np.array(temp_img)
 
@@ -99,17 +99,18 @@ class SynthIDPurifier:
             # Global DCT followed by localized block DCT
             rgb_arr = purify_dct_global(rgb_arr, strength=self.strength * 0.7)
             rgb_arr = purify_dct_block(rgb_arr, strength=self.strength, seed=42, use_ycbcr=True)
-        elif self.mode == "balanced":
-            # Localized 8x8 block DCT with HVS quantization mask in YCbCr space
-            rgb_arr = purify_dct_block(rgb_arr, strength=self.strength, seed=42, use_ycbcr=True)
+        elif self.mode in ("universal", "balanced"):
+            # Universal mode applies optimal 0.40 strength for total carrier nullification
+            eff_strength = max(self.strength, 0.40) if self.mode == "universal" else self.strength
+            rgb_arr = purify_dct_block(rgb_arr, strength=eff_strength, seed=42, use_ycbcr=True)
 
         # Step 3: Chrominance Decorrelation (SynthID frequently embeds in color difference channels)
-        if self.mode in ("fast", "balanced", "deep"):
-            jitter = 0.8 * self.strength if self.mode != "fast" else 0.5
+        if self.mode in ("universal", "fast", "balanced", "deep"):
+            jitter = 1.2 * self.strength if self.mode == "universal" else (0.8 * self.strength if self.mode != "fast" else 0.5)
             rgb_arr = chroma_decorrelation(rgb_arr, jitter_strength=jitter)
 
         # Step 4: Edge-Preserving Denoising (removes residual micro-steganographic perturbations)
-        if self.mode in ("balanced", "deep"):
+        if self.mode in ("universal", "balanced", "deep"):
             rgb_arr = edge_preserving_denoise(
                 rgb_arr,
                 diameter=5,

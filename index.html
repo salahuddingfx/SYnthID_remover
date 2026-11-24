@@ -980,10 +980,11 @@
         <div class="control-item">
           <label for="modeSelect">Purification Profile</label>
           <select id="modeSelect">
-            <option value="balanced" selected>Balanced (2D DCT + Bilateral + Grid Desync)</option>
-            <option value="fast">Fast (Sub-pixel Lanczos + Spatial Filter)</option>
-            <option value="deep">Deep Clean (Multi-Frequency Spectral Desync)</option>
-            <option value="metadata_only">Metadata Scrub Only (C2PA / EXIF / XMP)</option>
+            <option value="universal" selected>🛡️ Universal Mode (1-Click: SynthID + C2PA + Meta AI Purge)</option>
+            <option value="balanced">Balanced Mode (2D DCT + Bilateral + Grid Desync)</option>
+            <option value="deep">Deep Clean (Multi-Spectral Carrier Nullification)</option>
+            <option value="fast">Fast Clean (Sub-pixel Lanczos + Spatial)</option>
+            <option value="metadata_only">Metadata Strip Only (C2PA / EXIF / IPTC)</option>
           </select>
         </div>
 
@@ -1029,8 +1030,8 @@
 
         <div class="control-item" style="justify-content: flex-end;">
           <label class="checkbox-liquid" for="badgeCheck">
-            <input type="checkbox" id="badgeCheck" checked>
-            <span>Inpaint Gemini / Veo Corner AI Badge</span>
+            <input type="checkbox" id="badgeCheck">
+            <span>Inpaint Gemini / Veo Corner AI Badge (Optional)</span>
           </label>
         </div>
       </div>
@@ -1529,7 +1530,7 @@
           diffCtx.putImageData(diffData, 0, 0);
 
           // Sub-pixel Lattice Desynchronization (0.997x Lanczos resampling)
-          if (mode === 'balanced' || mode === 'deep') {
+          if (mode === 'universal' || mode === 'balanced' || mode === 'deep') {
             const desyncCanvas = document.createElement('canvas');
             desyncCanvas.width = Math.round(origW * 0.997);
             desyncCanvas.height = Math.round(origH * 0.997);

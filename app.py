@@ -167,10 +167,10 @@ def build_gradio_app():
 
                 with gr.Accordion("⚙️ Purification & Formatting Settings", open=True):
                     mode_radio = gr.Radio(
-                        choices=["balanced", "fast", "deep", "metadata_only"],
-                        value="balanced",
+                        choices=["universal", "balanced", "fast", "deep", "metadata_only"],
+                        value="universal",
                         label="Purification Profile",
-                        info="'balanced' ensures >40 dB PSNR fidelity with micro-phase dithering; 'fast' offers imperceptible 50+ dB near-lossless mode."
+                        info="'universal' is 1-Click All-in-One Shield: destroys SynthID, wipes C2PA, decorrelates Meta AI, and purges all provenance in a single pass."
                     )
                     strength_slider = gr.Slider(
                         minimum=0.1, maximum=1.0, value=0.25, step=0.05,

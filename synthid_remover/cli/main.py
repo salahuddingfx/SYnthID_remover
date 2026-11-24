@@ -35,9 +35,9 @@ def build_parser():
     )
     parser.add_argument(
         "-m", "--mode",
-        choices=["fast", "balanced", "deep", "metadata_only"],
-        default="balanced",
-        help="Purification mode. 'balanced' (default) uses DCT + bilateral + grid desync; 'deep' adds global frequency dithering; 'fast' uses spatial/chroma only; 'metadata_only' strips metadata without altering pixels.",
+        choices=["universal", "fast", "balanced", "deep", "metadata_only"],
+        default="universal",
+        help="Purification mode. 'universal' (default 1-click master) destroys SynthID, C2PA, Meta AI in a single pass; 'balanced' uses DCT + bilateral + grid desync; 'deep' adds global frequency dithering; 'fast' uses spatial/chroma only; 'metadata_only' strips metadata without altering pixels.",
     )
     parser.add_argument(
         "-s", "--strength",
